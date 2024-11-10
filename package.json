@@ -1,0 +1,22 @@
+{
+  "name": "fox-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron --enable-transparent-visuals .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "node-selection": "^0.2.0-alpha.0",
+    "ollama": "^0.5.9",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,0 +1,77 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    line-height: 130%;
+    letter-spacing: 0.2px;
+    color: #ddd;
+    font-size: 15px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    border-radius: 8px;
+}
+
+
+.tileButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3px 15px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    outline: none;
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    transition: ease-in-out all 0.1s;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.transparent {
+    background: transparent;
+}
+.transparent:hover{
+    background-color: rgba(255, 255, 255, 0.1)
+}
+
+.tileButton:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.tileButton:active {
+    transform: scale(0.9);
+}
+
+.tileButton.large {
+    flex-direction: column;
+    height: 60px;
+    border-radius: 10px;
+}
+
+ol, ul {
+    list-style-position: inside;
+}
+
+#writingToolsResult  li {
+    display: list-item;
+    margin-bottom: 5px;
+}
+
+#writingToolsResult p {
+    margin-bottom: 10px;
+}
+
+code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 5px;
+}
