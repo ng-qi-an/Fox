@@ -40,6 +40,9 @@ function createWritingToolsWindow(){
             preload: path.join(__dirname, 'src/preload.js'),
         }
     })
+    win.on("blur", ()=>{
+        win.close()
+    })
     ipcMain.on('setAlwaysOnTop', (event, state) => {
         const webContents = event.sender
         const win = BrowserWindow.fromWebContents(webContents)
