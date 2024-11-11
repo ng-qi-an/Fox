@@ -6,13 +6,23 @@
     letter-spacing: 0.2px;
     color: #ddd;
     font-size: 15px;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100vh;
 }
 
 body {
+    height: 100%;
+}
+
+.main {
     display: flex;
     flex-direction: column;
     padding: 10px 10px;
     overflow: auto;
+    height: 100vh;
     /* background-color: rgba(0, 0, 0, 0.4); */
     backdrop-filter: blur(5px);
     border-radius: 8px;

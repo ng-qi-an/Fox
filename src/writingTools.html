@@ -11,26 +11,47 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="main" id="overview" style="display: block;">
-        <div style="display: flex; gap: 8px">
-            <button onclick="writingTools('summarize')" class="tileButton large"><i data-lucide="scan-text" style="margin-bottom: 3px" stroke="rgba(255, 255, 255, 0.9)"></i>Summarize</button>
-            <button class="tileButton large"><i data-lucide="pencil-ruler" style="margin-bottom: 3px" stroke="rgba(255, 255, 255, 0.9)"></i>Rewrite</button>
-        </div>
-        <div style="display: flex; flex-direction: column; row-gap: 0px; width: 100%; margin-top: 10px">
-            <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="smile" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Friendly</button>
-            <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="briefcase" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Professional</button>
-            <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="filter" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Concise</button>
-        </div>
-        <div style="width: 100%; height: 1px; background: rgba(255, 255, 255, 0.2); margin-top: 2.5px"></div>
-        <div style="display: flex; flex-direction: column; row-gap: 0px; width: 100%; margin-top: 2.5px">
-            <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="list" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Points</button>
-            <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="list-ordered" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>List</button>
+    <div id="overview" style="display: block;">
+        <div class="main">
+            <div style="display: flex; gap: 8px">
+                <button onclick="writingTools('summarize')" class="tileButton large"><i data-lucide="scan-text" style="margin-bottom: 3px" stroke="rgba(255, 255, 255, 0.9)"></i>Summarize</button>
+                <button class="tileButton large"><i data-lucide="pencil-ruler" style="margin-bottom: 3px" stroke="rgba(255, 255, 255, 0.9)"></i>Rewrite</button>
+            </div>
+            <div style="display: flex; flex-direction: column; row-gap: 0px; width: 100%; margin-top: 10px">
+                <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="smile" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Friendly</button>
+                <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="briefcase" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Professional</button>
+                <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="filter" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Concise</button>
+            </div>
+            <div style="width: 100%; height: 1px; background: rgba(255, 255, 255, 0.2); margin-top: 2.5px"></div>
+            <div style="display: flex; flex-direction: column; row-gap: 0px; width: 100%; margin-top: 2.5px">
+                <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="list" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>Points</button>
+                <button class="tileButton transparent" style="align-items: center; justify-content: flex-start"><i data-lucide="list-ordered" style="margin-right: 7px; width: 17px;" stroke="rgba(255, 255, 255, 0.9)"></i>List</button>
+            </div>
         </div>
     </div>
-    <div class="main" id="results" style="display: none;">
-        <div id="writingToolsResult"></div>
+    <div id="results" style="display: none;">
+        <div class="main">
+            <div id="writingToolsResult" style="height: 100%; overflow: auto"></div>
+            <div style="flex: 1;"></div>
+            <div id="writingToolsActions" style="display: none;">
+                <div style="width: 100%; display: flex; align-items: center; justify-content: center; margin-top: 10px">
+                    <button onClick="regeneratePrompt();" class="tileButton" style="padding: 3px; width: 22px; height: 22px"><i data-lucide="rotate-cw" style="width: 12px"></i></button>
+                    <button onClick="copyContent();" class="tileButton" style="width: max-content; margin-left: 5px">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
+        const socket = io("http://localhost:7323");
+        var content = ""
+        var selectedPrompt = ""
+        var selectedContent = ""
+        window.addEventListener("load", ()=>{
+            window.electronAPI.getSelection()
+        })
+        window.electronAPI.onGetSelection((value) => {
+            selectedContent = value
+        });
         /* Load icons */
         lucide.createIcons({
             attrs: {
@@ -39,8 +60,6 @@
         });
         
         /* Socket.io*/
-        const socket = io("http://localhost:7323");
-        var content = ""
 
         socket.on("connect", () => {
             console.log("Connected to server");
@@ -49,6 +68,7 @@
         socket.on("getWritingTools", (data)=>{
             if (data.status == 'completed'){
                 window.electronAPI.setAlwaysOnTop(false)
+                document.getElementById("writingToolsActions").style.display = "block"
             } else if (data.status == 'generating') {
                 window.electronAPI.setAlwaysOnTop(true)
                 content += data.response
@@ -61,9 +81,24 @@
         }
 
         function writingTools(promptSelection){
+            selectedPrompt = promptSelection
+            generateResponse()
+        }
+        function regeneratePrompt(){
+            document.getElementById("writingToolsActions").style.display = "none"
+            document.getElementById("writingToolsResult").innerHTML = ""
+            content = ""
+            generateResponse()
+        }
+        function copyContent(){
+            navigator.clipboard.writeText(content)
+            window.electronAPI.closeWindow()
+        }
+
+        function generateResponse(){
             document.getElementById("overview").style.display = "none"
             document.getElementById("results").style.display = "block"
-            const newPrompt = prompts[promptSelection].replace("{{text}}", `To fire a one-way IPC message from a renderer process to the main process, you can use the ipcRenderer.send API to send a message that is then received by the ipcMain.on API. You usually use this pattern to call a main process API from your web contents. We'll demonstrate this pattern by creating a simple app that can programmatically change its window title. For this demo, you'll need to add code to your main process, your renderer process, and a preload script. The full code is below, but we'll be explaining each file individually in the following sections.`)
+            const newPrompt = prompts[selectedPrompt].replace("{{text}}", selectedContent)
             console.log("[FOX WRITINGTOOLS] Sending prompt...", newPrompt)
             socket.emit("getWritingTools", {prompt: newPrompt})
         }

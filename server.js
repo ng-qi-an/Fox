@@ -2,7 +2,6 @@ import { getSelection } from 'node-selection';
 import { Server } from "socket.io";
 import { createServer } from "http";
 import express from 'express';
-import { BrowserWindow } from 'electron';
 import { writingTools } from './modules/writingTools.js';
 
 const webApp = express()
@@ -12,8 +11,6 @@ const io = new Server(httpServer, { /* options */ });
 
 export function startServer(app){
     webApp.get('/', function(req, res) {
-                
-        
         res.json({ message: 'Hello World'});
         // setTimeout(async()=>{
         //     try {
@@ -28,7 +25,6 @@ export function startServer(app){
     io.on("connection", (socket) => {
         console.log("[INFO](API) Client Connected")
         socket.on("getWritingTools", async (data) => {  
-            console.log("help me pls")
             const response = await writingTools(data.prompt)
             for await (const part of response) {
                 console.log('generating the thing')

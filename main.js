@@ -2,6 +2,8 @@ import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, Tray } 
 import { startServer } from './server.js'
 import path, { dirname } from "path"
 import { fileURLToPath } from 'url';
+import { getSelection } from 'node-selection';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,24 +31,35 @@ function registerShortcuts(){
     })
 }
 
-function createWritingToolsWindow(){
-    console.log(path.join(__dirname, 'src/preload.js'))
+async function createWritingToolsWindow(){
+    var selection = null
+    try {
+        selection = await getSelection();
+        if (!selection.text){
+            throw new Error('No text selected')
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return
+    }
     const win = new BrowserWindow({
         titleBarStyle: "hidden",
         backgroundColor: "#00000000",
-        transparent: true,
+        transparent: process.platform == "darwin" && true,
         vibrancy: process.platform == "darwin" && "under-window", // in my case...
         visualEffectState: process.platform == "darwin" && "followWindow",
-        backgroundMaterial: process.platform == "win32" && "acrylic",
+        backgroundMaterial: process.platform == "win32" && "mica",
         resizable: true,
         width: 267,
         height: 248,
         webPreferences: {
-            preload: path.join(__dirname, 'src/preload.js'),
+            preload: path.join( __dirname, 'src/preload.js'),
         }
     })
-    win.webContents.openDevTools()
-    win.setWindowButtonVisibility(false)
+    //win.webContents.openDevTools()
+    if (process.platform == 'darwin'){
+        win.setWindowButtonVisibility(false)
+    }
 
     win.on("blur", ()=>{
         if (win.isAlwaysOnTop() == false){
@@ -57,6 +70,16 @@ function createWritingToolsWindow(){
         const webContents = event.sender
         const win = BrowserWindow.fromWebContents(webContents)
         win.setAlwaysOnTop(state)
+    })
+    ipcMain.on('closeWindow', (event) => {
+        const webContents = event.sender
+        const win = BrowserWindow.fromWebContents(webContents)
+        win.close()
+    })
+    ipcMain.on("getSelection", (event)=>{
+        const webContents = event.sender
+        const win = BrowserWindow.fromWebContents(webContents)
+        win.webContents.send("getSelection", selection.text)
     })
     win.loadFile('src/writingTools.html')
 }
