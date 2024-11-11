@@ -30,18 +30,28 @@ function registerShortcuts(){
 }
 
 function createWritingToolsWindow(){
+    console.log(path.join(__dirname, 'src/preload.js'))
     const win = new BrowserWindow({
         titleBarStyle: "hidden",
-        backgroundMaterial: "acrylic",
-        resizable: false,
+        backgroundColor: "#00000000",
+        transparent: true,
+        vibrancy: process.platform == "darwin" && "under-window", // in my case...
+        visualEffectState: process.platform == "darwin" && "followWindow",
+        backgroundMaterial: process.platform == "win32" && "acrylic",
+        resizable: true,
         width: 267,
         height: 248,
         webPreferences: {
             preload: path.join(__dirname, 'src/preload.js'),
         }
     })
+    win.webContents.openDevTools()
+    win.setWindowButtonVisibility(false)
+
     win.on("blur", ()=>{
-        win.close()
+        if (win.isAlwaysOnTop() == false){
+            win.close()
+        }
     })
     ipcMain.on('setAlwaysOnTop', (event, state) => {
         const webContents = event.sender

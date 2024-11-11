@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="public/styles/writingTools.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.js" integrity="sha512-8BHxHDLsOHx+flIrQ0DrZcea7MkHqRU5GbTHmbdzMRnAaoCIkZ97PqZcXJkKZckMMhqfoeaJE+DNUVuyoQsO3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>Document</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="main" id="overview" style="display: block;">
@@ -26,10 +28,8 @@
         </div>
     </div>
     <div class="main" id="results" style="display: none;">
-
+        <div id="writingToolsResult"></div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         /* Load icons */
         lucide.createIcons({
@@ -40,17 +40,19 @@
         
         /* Socket.io*/
         const socket = io("http://localhost:7323");
+        var content = ""
 
         socket.on("connect", () => {
             console.log("Connected to server");
         });
 
-        socketClient.on("getWritingTools", (data)=>{
+        socket.on("getWritingTools", (data)=>{
             if (data.status == 'completed'){
                 window.electronAPI.setAlwaysOnTop(false)
-            } else {
+            } else if (data.status == 'generating') {
                 window.electronAPI.setAlwaysOnTop(true)
-                setContent((old)=> old + data.response)
+                content += data.response
+                document.getElementById("writingToolsResult").innerHTML = marked.parse(content)
             }
         })
         /* Prompt functions */
@@ -59,13 +61,12 @@
         }
 
         function writingTools(promptSelection){
-            document.getElementById("main").style.display = "none"
+            document.getElementById("overview").style.display = "none"
             document.getElementById("results").style.display = "block"
-            const newPrompt = props[promptSelection].replace("{{text}}", `To fire a one-way IPC message from a renderer process to the main process, you can use the ipcRenderer.send API to send a message that is then received by the ipcMain.on API. You usually use this pattern to call a main process API from your web contents. We'll demonstrate this pattern by creating a simple app that can programmatically change its window title. For this demo, you'll need to add code to your main process, your renderer process, and a preload script. The full code is below, but we'll be explaining each file individually in the following sections.`)
+            const newPrompt = prompts[promptSelection].replace("{{text}}", `To fire a one-way IPC message from a renderer process to the main process, you can use the ipcRenderer.send API to send a message that is then received by the ipcMain.on API. You usually use this pattern to call a main process API from your web contents. We'll demonstrate this pattern by creating a simple app that can programmatically change its window title. For this demo, you'll need to add code to your main process, your renderer process, and a preload script. The full code is below, but we'll be explaining each file individually in the following sections.`)
             console.log("[FOX WRITINGTOOLS] Sending prompt...", newPrompt)
             socket.emit("getWritingTools", {prompt: newPrompt})
         }
-
     </script>
 </body>
 </html>
