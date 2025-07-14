@@ -9,6 +9,7 @@ export default function Prompt(){
     const [platform, setPlatform] = useState("");
     const inputRef = useRef(null);
     useEffect(()=>{
+        window.electronAPI.send("getPlatform");
         window.electronAPI.on("getChatResponse", (event, data) => {
             if (data.status == 'completed'){
                 setMessages(data.newMessages)
@@ -19,11 +20,12 @@ export default function Prompt(){
                 window.electronAPI.send("setAlwaysOnTop", true)
             }
         });
-        window.electronAPI.on("getPlatform", (event, data) => {
-            setPlatform(data.platform);
+        window.electronAPI.on("getPlatform", (event, platform) => {
+            console.log("[FOX PROMPT] Platform detected:", platform);
+            setPlatform(platform);
         });
         window.addEventListener("keydown", (event) => {
-            if (event.key.match(/^[A-Za-z0-9]+$/g)) {
+            if (event.key.match(/^[A-Za-z0-9]+$/g) && !event.ctrlKey && !event.metaKey && !event.altKey) {
                 if (inputRef.current) {
                     (inputRef.current as HTMLInputElement).focus();
                 }
@@ -34,7 +36,7 @@ export default function Prompt(){
     useEffect(()=>{
         window.onblur = ()=>{
             if (messages.length < 1){
-                window.close();
+                window.electronAPI.send("closeWindow", "prompt");
             }
         }
         return ()=>{
@@ -51,7 +53,7 @@ export default function Prompt(){
                     window.electronAPI.send("minimiseWindow");
                 }}><Minus className="w-[18px] h-[18px]" strokeWidth={'3px'}/></button>
                 <button className="text-foreground/50 hover:text-foreground" onClick={() => {
-                    window.close()
+                    window.electronAPI.send("closeWindow", "prompt");
                 }}><X className="w-[18px] h-[18px]" strokeWidth={'3px'}/></button>
             </div>
             <div id="chat" style={{maxHeight: "calc(100% - 98px)"}} className="py-2 px-4 overflow-auto no-drag flex flex-col gap-3">
@@ -81,6 +83,7 @@ export default function Prompt(){
         </>}
         <form id="promptForm" className={`h-[63px] no-drag pl-3 px-4 flex items-center fixed bottom-0 left-0 w-full ${messages.length > 0 ? 'border-t border-foreground/10' : ''}`} onSubmit={(e)=>{
             e.preventDefault();
+            console.log(platform)
             if (messages.length < 1 && platform && platform == "win32"){
                 window.electronAPI.send("moveWindow", {y: -(500 - 64)});
             }

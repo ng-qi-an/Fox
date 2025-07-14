@@ -11,6 +11,28 @@ const __dirname = dirname(__filename);
 const appIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'icon.png'}`
 const templateAppIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'iconTemplate.png'}`
 
+var activePromptWindow = null;
+var activeWritingToolsWindow = null;
+
+
+ipcMain.on('closeWindow', (event, type) => {
+    const webContents = event.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+    if (type == 'prompt') {
+        if (activePromptWindow) {
+            win.close()
+            activePromptWindow = null
+        }
+    } else if (type == 'writingTools') {
+        if (activeWritingToolsWindow) {
+            win.close()
+            activeWritingToolsWindow = null
+        }
+    } else {
+        win.close()
+    }
+    win.close()
+})
 
 const appServe = app.isPackaged ? serve({
   directory: path.join(__dirname, "../out"),
@@ -22,6 +44,11 @@ function makeTray() {
     const icon = nativeImage.createFromPath(templateAppIcon)
     tray = new Tray(icon.resize({ width: 16, height: 16 }))
     const contextMenu = Menu.buildFromTemplate([
+        { label: 'Open Chat', type: 'normal', click: () =>  {
+            if (!activePromptWindow) {
+                createPromptWindow()
+            }
+        }},
         { label: 'Quit', type: 'normal', click: () => app.quit() },
     ])
     tray.setToolTip('Fox')
@@ -35,10 +62,15 @@ function makeTray() {
 
 function registerShortcuts(){
   globalShortcut.register('F8', () => {
+    console.log(activePromptWindow)
+    if (!activePromptWindow) {
       createPromptWindow()
+    }
   })
   globalShortcut.register('Shift+F8', () => {
+    if (!activeWritingToolsWindow) {
       createWritingToolsWindow()
+    }
   })
 }
 
@@ -62,6 +94,7 @@ async function createPromptWindow(){
             preload: path.join( __dirname, 'preload.js'),
         }
     })
+    activePromptWindow = win;
     // win.webContents.openDevTools()
     if (process.platform == 'darwin'){
         win.setWindowButtonVisibility(false)
@@ -103,15 +136,16 @@ async function createWritingToolsWindow(){
         vibrancy: process.platform == "darwin" && "under-window", // in my case...
         visualEffectState: process.platform == "darwin" && "followWindow",
         backgroundMaterial: process.platform == "win32" && "acrylic",
-        width: 267,
+        width: 260,
         resizable: true,
-        height: 248,
+        height: 289,
         x: cursor.x + 10,
         y: cursor.y - 248/2,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
         }
     })
+    activeWritingToolsWindow = win;
     ipcMain.on("getSelection", (event)=>{
         const webContents = event.sender
         const win = BrowserWindow.fromWebContents(webContents)
@@ -125,6 +159,7 @@ async function createWritingToolsWindow(){
     win.on("blur", ()=>{
         if (win.isAlwaysOnTop() == false){
             win.close()
+            activeWritingToolsWindow = null;
         }
     })
     

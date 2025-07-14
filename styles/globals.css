@@ -78,16 +78,15 @@ body {
     justify-content: center;
     align-items: center;
     padding: 3px 15px;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    background-color: rgba(var(--foreground-rgba), 0.1);
     border: none;
     outline: none;
     color: white;
     cursor: pointer;
     width: 100%;
     transition: ease-in-out all 0.1s;
-    font-size: 13.5px;
-    font-weight: 500;
+    font-size: 14px;
 }
 
 
@@ -99,11 +98,11 @@ body {
     background: transparent;
 }
 .transparent:hover{
-    background-color: rgba(255, 255, 255, 0.1)
+    background-color: rgba(var(--foreground-rgba), 0.1);
 }
 
 .tileButton:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(var(--foreground-rgba), 0.2);
 }
 
 .tileButton:active {
@@ -114,13 +113,15 @@ body {
     flex-direction: column;
     height: 60px;
     border-radius: 10px;
+    font-size: 14.5px;
 }
 
 #writingToolsResult ol, #writingToolsResult ul {
+    list-style: initial;
     list-style-position: inside;
 }
 
-#writingToolsResult  li {
+#writingToolsResult li {
     display: list-item;
     margin-bottom: 5px;
 }
@@ -130,7 +131,7 @@ body {
 }
 
 #writingToolsResult code {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(var(--foreground-rgba), 0.1);
     padding: 2px 5px;
     border-radius: 5px;
 }
@@ -148,4 +149,3 @@ body {
 .message-content li {
     margin-bottom: 5px;
 }
-

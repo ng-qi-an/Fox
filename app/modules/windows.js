@@ -1,15 +1,10 @@
 import { BrowserWindow, ipcMain } from "electron"
 
-export function initialiseWindowsIPC(app){
+export function initialiseWindowsIPC(app) {
     ipcMain.on('setAlwaysOnTop', (event, state) => {
         const webContents = event.sender
         const win = BrowserWindow.fromWebContents(webContents)
         win.setAlwaysOnTop(state)
-    })
-    ipcMain.on('closeWindow', (event) => {
-        const webContents = event.sender
-        const win = BrowserWindow.fromWebContents(webContents)
-        win.close()
     })
     ipcMain.on('minimiseWindow', (event) => {
         const webContents = event.sender
