@@ -3,6 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
+import { webTools } from './webTools.js';
 
 export async function chat(app, prompt, messages) {
     const config = await getConfig(app)
@@ -11,15 +12,26 @@ export async function chat(app, prompt, messages) {
     });
 
     var newMessages = [...messages];
-    newMessages.push({ role: 'user', content: prompt });
-    const response = streamText({model: google(
-        config['MODELS']['WRITING_TOOLS']['MODEL'], {
-            useSearchGrounding: true,
-            dynamicRetrievalConfig: {
-                mode: 'MODE_DYNAMIC',
-                dynamicThreshold: 0.8,
+    newMessages.push({ role: 'user', content: [{type: 'text', text: prompt}] });
+    
+    const response = streamText({
+        model: google(
+            config['MODELS']['CHAT']['MODEL'], {
+                // useSearchGrounding: true,
+                // dynamicRetrievalConfig: {
+                //     mode: 'MODE_DYNAMIC',
+                //     dynamicThreshold: 0.8,
+                // }
             }
-        }), system: "Your name is Fox, and you are a friendly AI assistant. ", messages: newMessages})
+        ), 
+        system: "Your name is Fox, and you are a friendly AI assistant.", 
+        messages: newMessages,
+        tools: {
+            ...webTools,
+        },
+          maxSteps: 5, // allow up to 5 steps
+    });
+    
     return {newMessages, response: response, streamed: true};
 }
 
@@ -31,20 +43,25 @@ export function initialiseChatIPC(app) {
         const win = BrowserWindow.fromWebContents(webContents)
         console.log('generating')
         var newMessages = [];
-        const uid = uuidv4();
+        // const uid = uuidv4();
         try {
             const responseWithData = await chat(app, data.prompt, data.messages)
             var messageContent = ""
             for await (const part of responseWithData.response.textStream) {
                 messageContent += part
-                win.webContents.send("getChatResponse", {'uid': uid, 'response': messageContent, "status": 'generating'});
+                win.webContents.send("getChatResponse", {'response': messageContent, "status": 'generating'});
             }
-            newMessages = [...responseWithData.newMessages];
-            newMessages.push({"role": "assistant", "content": messageContent, "sources": await responseWithData.response.sources});
+            // newMessages = [...responseWithData.newMessages];
+            // newMessages.push({"role": "assistant", "content": messageContent, "sources": await responseWithData.response.sources});
+            const messages = (await responseWithData.response.response).messages
+            for (const message of messages) {
+                console.log(message)
+            }
+            newMessages = [...responseWithData.newMessages, ...messages];
         } catch (error) {
             console.error('[ERROR](API) Error in chat response:', error);
             return win.webContents.send("getChatResponse", {"status": 'error', "error": error.message});
         }
-        win.webContents.send("getChatResponse", {"status": 'completed', 'uid': uid, "response": messageContent, "newMessages": newMessages});
+        win.webContents.send("getChatResponse", {"status": 'completed', "response": messageContent, "newMessages": newMessages});
     });
 }

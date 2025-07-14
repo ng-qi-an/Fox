@@ -59,12 +59,17 @@ export default function Prompt(){
             <div id="chat" style={{maxHeight: "calc(100% - 98px)"}} className="py-2 px-4 overflow-auto no-drag flex flex-col gap-3">
                 {messages.map((message, index) => {
                     const isUser = message.role === "user";
-                    const uid = message.uid || index; // Use index as fallback UID
-                    return isUser ? <div key={uid} className="ml-auto rounded-lg px-4 py-2 w-max max-w-[80%] bg-foreground/10">
-                        <p>{message.content}</p>
+                    const uid = message.id || index; // Use index as fallback UID
+                    return (message.role == 'assistant' || message.role == 'user') && (
+                    message.content[0].type == 'tool-call' ?
+                        <div key={uid} className="message-content w-full max-w-[95%] pl-4 text-sm opacity-80 mb-[-12px]">
+                            <p className="text-sm text-foreground/50">Used {message.content[0].toolName}</p>
+                        </div>
+                    :  isUser ? <div key={uid} className="ml-auto rounded-lg px-4 py-2 w-max max-w-[80%] bg-foreground/10">
+                        <p>{message.content[0].text}</p>
                     </div>
                     : <div key={uid} className="message-content mb-2 w-full max-w-[95%] pl-4">
-                        <Markdown>{message.content}</Markdown>
+                        <Markdown>{message.content[0].text}</Markdown>
                         {message.sources && message.sources.length > 0 && <div className="flex items-center flex-wrap gap-x-2">
                             {message.sources.map((source:Record<string, string>, indx:number) => {
                                 if (showAllSources == uid || indx < 3) {
@@ -77,7 +82,7 @@ export default function Prompt(){
                                 <button className="text-xs text-foreground/50 hover:text-foreground underline" onClick={() => setShowAllSources("")}>Show less</button>
                             }
                         </div>}
-                    </div>
+                    </div>)
                 })}
             </div>
         </>}
@@ -87,7 +92,7 @@ export default function Prompt(){
             if (messages.length < 1 && platform && platform == "win32"){
                 window.electronAPI.send("moveWindow", {y: -(500 - 64)});
             }
-            setMessages((old) => [...old, {role: "user", content: promptInput}, {role: "assistant", content: ""}]);
+        setMessages((old) => [...old, {role: "user", content: [{type: 'text', text: promptInput}]}, {role: "assistant", content: [{type: "text", text: ""}]}]);
             window.electronAPI.send("getChatResponse", {prompt: promptInput, messages: messages})
             window.electronAPI.send("resizeWindow", {height: 500});
             window.electronAPI.send("setAlwaysOnTop", true)

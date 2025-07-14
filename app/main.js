@@ -6,6 +6,7 @@ import { getSelectedText } from 'node-get-selected-text'
 import { initialiseWritingToolsIPC } from './modules/writingTools.js';
 import { initialiseWindowsIPC } from './modules/windows.js';
 import { initialiseChatIPC } from './modules/chat.js';
+import { startServer } from './server.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const appIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'icon.png'}`
@@ -201,6 +202,7 @@ app.whenReady().then(() => {
     initialiseWritingToolsIPC(app);
     initialiseWindowsIPC(app);
     initialiseChatIPC(app);
+    startServer(app);
     console.log("Fox has started!")
 })
 
