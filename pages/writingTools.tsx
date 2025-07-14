@@ -13,7 +13,7 @@ export default function WritingTools() {
         "friendly": "Rewrite the following text in a **friendly** tone. Make appropriate line breaks. This is the text: {{text}}",
         "professional": "Rewrite the following text in a **professional** tone. Make appropriate line breaks. This is the text: {{text}}",
         "concise": "Rewrite the following text in a **concise** tone. Make appropriate line breaks. This is the text: {{text}}",
-        "bulletpoints": "Extract only the main points from the following text and break them down into bullet points, with each point on a new line. You may format the points to highlight the main points. You are not to add any headers and only reply with the formatted bullet points. This is the text: {{text}}",
+        "bulletpoints": "Extract only the concise key points from the following text. Format the points into an unordered list. You are not to add any headers and only reply with the formatted bullet points. This is the text: {{text}}",
         "list": "Organise the following text into an ordered list with step numbers at the front, with each step on a new line. You may format the points to highlight the main points. You are not to add any headers and only reply with the formatted list. This is the text: {{text}}"
     }
 

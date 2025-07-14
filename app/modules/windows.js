@@ -32,4 +32,9 @@ export function initialiseWindowsIPC(app){
     ipcMain.on("displayResponse", (event, response)=>{
         activeResponseWindow.webContents.send("displayResponse", response)
     })
+    ipcMain.on("getPlatform", (event)=>{
+        const webContents = event.sender
+        const win = BrowserWindow.fromWebContents(webContents)
+        win.webContents.send("getPlatform", process.platform)
+    })
 }

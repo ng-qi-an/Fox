@@ -1,12 +1,13 @@
 import { Cross, Minus, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 
 export default function Prompt(){
     const [messages, setMessages] = useState<Record<string, any>[]>([]);
     const [promptInput, setPromptInput] = useState("");
     const [showAllSources, setShowAllSources] = useState("");
-
+    const [platform, setPlatform] = useState("");
+    const inputRef = useRef(null);
     useEffect(()=>{
         window.electronAPI.on("getChatResponse", (event, data) => {
             if (data.status == 'completed'){
@@ -18,6 +19,17 @@ export default function Prompt(){
                 window.electronAPI.send("setAlwaysOnTop", true)
             }
         });
+        window.electronAPI.on("getPlatform", (event, data) => {
+            setPlatform(data.platform);
+        });
+        window.addEventListener("keydown", (event) => {
+            if (event.key.match(/^[A-Za-z0-9]+$/g)) {
+                if (inputRef.current) {
+                    (inputRef.current as HTMLInputElement).focus();
+                }
+            }
+        });
+
     }, [])
     useEffect(()=>{
         window.onblur = ()=>{
@@ -69,7 +81,7 @@ export default function Prompt(){
         </>}
         <form id="promptForm" className={`h-[63px] no-drag pl-3 px-4 flex items-center fixed bottom-0 left-0 w-full ${messages.length > 0 ? 'border-t border-foreground/10' : ''}`} onSubmit={(e)=>{
             e.preventDefault();
-            if (messages.length < 1){
+            if (messages.length < 1 && platform && platform == "win32"){
                 window.electronAPI.send("moveWindow", {y: -(500 - 64)});
             }
             setMessages((old) => [...old, {role: "user", content: promptInput}, {role: "assistant", content: ""}]);
@@ -79,7 +91,7 @@ export default function Prompt(){
             setPromptInput("");
         }}>
             <button className="min-h-[30px] min-w-[30px] hover:bg-foreground/10 flex items-center justify-center mr-2 rounded-full" type="button"><Plus className="w-[18px] h-[18px]" strokeWidth={'2px'}/></button>
-            <input id="prompt" value={promptInput} onChange={(e)=> setPromptInput(e.target.value)} placeholder="Ask anything" className="outline-none border-none placeholder:text-foreground/50 w-full h-[63px]" autoFocus></input>
+            <input ref={inputRef} id="prompt" value={promptInput} onChange={(e)=> setPromptInput(e.target.value)} placeholder="Ask anything" className="outline-none border-none placeholder:text-foreground/50 w-full h-[63px]" autoFocus></input>
         </form>  
     </div>
 }

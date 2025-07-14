@@ -8,7 +8,8 @@ import { initialiseWindowsIPC } from './modules/windows.js';
 import { initialiseChatIPC } from './modules/chat.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const appIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}${process.platform == "win32" ? 'icon.ico' : 'icon.png'}`
+const appIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'icon.png'}`
+const templateAppIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'iconTemplate.png'}`
 
 
 const appServe = app.isPackaged ? serve({
@@ -17,8 +18,9 @@ const appServe = app.isPackaged ? serve({
 
 function makeTray() {
     let tray
-    const icon = nativeImage.createFromPath(appIcon)
-    tray = new Tray(icon)
+    console.log(templateAppIcon)
+    const icon = nativeImage.createFromPath(templateAppIcon)
+    tray = new Tray(icon.resize({ width: 16, height: 16 }))
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Quit', type: 'normal', click: () => app.quit() },
     ])
@@ -26,7 +28,9 @@ function makeTray() {
     tray.on("click", () => {
         createPromptWindow()
     })
-    tray.setContextMenu(contextMenu)
+    if (process.platform == 'win32'){
+      tray.setContextMenu(contextMenu)
+    }
 }
 
 function registerShortcuts(){
@@ -52,8 +56,8 @@ async function createPromptWindow(){
         resizable: true,
         width: 400,
         height: 64,
-        x: display.width -420,
-        y: display.height - 120,
+        x: process.platform == "win32" ? display.width - 420 : display.width - 405,
+        y: process.platform == "win32" ? display.height - 120 : 30,
         webPreferences: {
             preload: path.join( __dirname, 'preload.js'),
         }
