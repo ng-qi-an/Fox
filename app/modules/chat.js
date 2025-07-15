@@ -12,7 +12,7 @@ export async function chat(app, prompt, messages) {
     });
 
     var newMessages = [...messages];
-    newMessages.push({ role: 'user', content: [{type: 'text', text: prompt}] });
+    newMessages.push(prompt);
     
     const response = streamText({
         model: google(
@@ -29,7 +29,7 @@ export async function chat(app, prompt, messages) {
         tools: {
             ...webTools,
         },
-          maxSteps: 5, // allow up to 5 steps
+        maxSteps: 5, // allow up to 5 steps
     });
     
     return {newMessages, response: response, streamed: true};

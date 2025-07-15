@@ -77,7 +77,12 @@ function registerShortcuts(){
 
 
 async function createPromptWindow(){
-  const display = screen.getPrimaryDisplay().bounds
+    var noBlur = false;
+
+    function noblur(event, state){
+        noBlur = state;
+    }
+    const display = screen.getPrimaryDisplay().bounds
     const win = new BrowserWindow({
         titleBarStyle: "hidden",
         backgroundColor: "#99000000",
@@ -101,11 +106,20 @@ async function createPromptWindow(){
         win.setWindowButtonVisibility(false)
     }
 
-    // win.on("blur", ()=>{
-    //     if (win.isAlwaysOnTop() == false){
-    //         win.close()
-    //     }
-    // })
+    win.on("blur", ()=>{
+        if (win.isAlwaysOnTop() == false && noBlur == false){
+            win.close()
+            activePromptWindow = null;
+        }
+    })
+
+    win.on("close", ()=>{
+        ipcMain.off("noBlur", noblur)
+        activePromptWindow = null;
+    })
+
+    ipcMain.on("noBlur", noblur)
+    
 
     if (app.isPackaged) {
       await appServe(win, {route: "prompt"})

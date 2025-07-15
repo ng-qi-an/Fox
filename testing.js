@@ -1,6 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
-
+import fs from "node:fs"
 import { z } from 'zod';
 import { generateText, tool } from 'ai';
 
@@ -60,25 +60,26 @@ Please now process this content according to the user's request (${reason}).`;
     }
 };
 
-const response = streamText({
-  model: google("gemini-2.5-flash"),
-  tools: {
-    weather: tool({
-      description: 'Get the weather in a location',
-      parameters: z.object({
-        location: z.string().describe('The location to get the weather for'),
-      }),
-      execute: async ({ location }) => ({
-        location,
-        temperature: 72 + Math.floor(Math.random() * 21) - 10,
-      }),
-    }),
-    getWebpageContentTool: tool(getWebpageContentTool),
-  },
-  maxSteps: 5, // allow up to 5 steps
-  prompt: 'Summarise the webpage',
+
+const result = streamText({
+  model: google('gemini-2.5-flash'),
+  messages: [
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: 'Describe this page',
+        },
+        {
+          type: 'image',
+          image: fs.readFileSync('./buildResources/icon.png').toString('base64'),
+        },
+      ],
+    },
+  ],
 });
 
-for await (const part of response.textStream) {
+for await (const part of result.textStream) {
   console.log(part);
 }
