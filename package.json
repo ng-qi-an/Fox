@@ -1,46 +1,58 @@
 {
   "name": "fox",
-  "version": "0.1.0",
+  "version": "0.4.0-alpha",
   "private": true,
   "main": "app/main.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ng-qi-an/Fox.git"
+  },
   "scripts": {
     "dev": "concurrently -n \"NEXT,ELECTRON\" -c \"yellow,blue\" --kill-others \"next dev\" \"electron .\"",
     "build": "next build && electron-builder",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "release": "dotenv -- electron-builder --publish always"
   },
   "build": {
     "extraResources": [
-      "config.example.json",
-      "icon.png"
+      "buildResources"
     ],
     "directories": {
       "buildResources": "buildResources"
+    },
+    "win": {
+      "publish": [
+        "github"
+      ]
     }
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.22",
     "ai": "^4.3.17",
     "electron-serve": "^2.1.1",
+    "electron-store": "^10.1.0",
+    "electron-updater": "^6.6.2",
     "express": "^5.1.0",
-    "lucide-react": "^0.525.0",
-    "next": "15.3.5",
     "node-get-selected-text": "^0.1.9",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0",
     "socket.io": "^4.8.1",
     "tsx": "^4.20.3",
     "uuid": "^11.1.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "lucide-react": "^0.525.0",
+    "next": "15.3.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^9.2.0",
+    "dotenv-cli": "^8.0.0",
     "electron": "^37.2.1",
     "electron-builder": "^26.0.12",
     "tailwindcss": "^4",

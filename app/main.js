@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, nativeImage, screen, Tray } from 'electron'
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, Tray } from 'electron'
 import path, { dirname } from "path"
 import { fileURLToPath } from 'url';
 import serve from 'electron-serve';
@@ -7,14 +7,30 @@ import { initialiseWritingToolsIPC } from './modules/writingTools.js';
 import { initialiseWindowsIPC } from './modules/windows.js';
 import { initialiseChatIPC } from './modules/chat.js';
 import { startServer } from './server.js';
+import electronUpdater from 'electron-updater';
+import Store from 'electron-store';
+import { validateConfig } from './modules/config.js';
+const { autoUpdater } = electronUpdater;
+
+app.requestSingleInstanceLock() // Ensure only one instance of the app is running
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const appIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'icon.png'}`
 const templateAppIcon = `${app.isPackaged ? process.resourcesPath + "/" : ""}buildResources/${process.platform == "win32" ? 'icon.ico' : 'iconTemplate.png'}`
+const store = new Store();
 
 var activePromptWindow = null;
 var activeWritingToolsWindow = null;
 
+
+app.on('second-instance', (event) => {
+  if (activePromptWindow) {
+    if (activePromptWindow.isMinimized()) activePromptWindow.restore();
+    activePromptWindow.focus();
+  }
+})
 
 ipcMain.on('closeWindow', (event, type) => {
     const webContents = event.sender
@@ -33,6 +49,13 @@ ipcMain.on('closeWindow', (event, type) => {
         win.close()
     }
     win.close()
+})
+
+ipcMain.on("saveConfig", (event, config) => {
+    const webContents = event.sender
+    const win = BrowserWindow.fromWebContents(webContents)
+    store.set(config);
+    win.webContents.send("saveConfig", {'status': 'OK'})
 })
 
 const appServe = app.isPackaged ? serve({
@@ -94,7 +117,7 @@ async function createPromptWindow(){
         resizable: true,
         width: 400,
         height: 64,
-        x: process.platform == "win32" ? display.width - 420 : display.width - 405,
+        x: process.platform == "win32" ? display.width - 410 : display.width - 405,
         y: process.platform == "win32" ? display.height - 120 : 30,
         webPreferences: {
             preload: path.join( __dirname, 'preload.js'),
@@ -188,29 +211,123 @@ async function createWritingToolsWindow(){
     }
 }
 
-const createWindow = () => {
+async function createSetupWindow(){
   const win = new BrowserWindow({
-    width: 1000,
-    height: 600,
+    titleBarStyle: "hidden",
+    backgroundColor: "#99000000",
+    icon: appIcon,
+    transparent: process.platform == "darwin" && true,
+    vibrancy: process.platform == "darwin" && "under-window", // in my case...
+    visualEffectState: process.platform == "darwin" && "followWindow",
+    backgroundMaterial: process.platform == "win32" && "acrylic",
+    width: 480,
+    height: 530,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js")
+        preload: path.join( __dirname, 'preload.js'),
     }
-  });
+  })
+  win.center()
 
   if (app.isPackaged) {
-    appServe(win, {writingTools: true}).then(() => {
-      win.loadURL("app://-");
-    });
+    await appServe(win, {route: "setup"})
   } else {
-    win.loadURL("http://localhost:3000/writingTools");
-    win.webContents.openDevTools();
+    win.loadURL("http://localhost:3000/setup");
     win.webContents.on("did-fail-load", (e, code, desc) => {
       win.webContents.reloadIgnoringCache();
     });
   }
 }
 
-app.whenReady().then(() => {
+async function createUpdaterWindow(){
+  const win = new BrowserWindow({
+    titleBarStyle: "hidden",
+    backgroundColor: "#99000000",
+    icon: appIcon,
+    transparent: process.platform == "darwin" && true,
+    vibrancy: process.platform == "darwin" && "under-window", // in my case...
+    visualEffectState: process.platform == "darwin" && "followWindow",
+    backgroundMaterial: process.platform == "win32" && "acrylic",
+    width: 250,
+    height: 270,
+    resizable: false,
+    webPreferences: {
+        preload: path.join( __dirname, 'preload.js'),
+    }
+  })
+  win.center()
+
+  if (app.isPackaged) {
+    await appServe(win, {route: "updater"})
+  } else {
+    win.loadURL("http://localhost:3000/updater");
+    win.webContents.on("did-fail-load", (e, code, desc) => {
+      win.webContents.reloadIgnoringCache();
+    });
+  }
+  return win;
+}
+
+function updateApp(){
+  console.log("[INFO](UPDATER) Checking for updates...")
+  autoUpdater.checkForUpdates()
+  var downloaded = false;
+  var updaterWindow = null;
+  autoUpdater.on('update-downloaded', () => {
+    console.log("[INFO](UPDATER) Update downloaded")
+    downloaded = true
+  });
+  autoUpdater.on('update-not-available', () => {
+    console.log("[INFO](UPDATER) No updates available")
+  })
+  autoUpdater.on('update-available', async() => {
+    console.log("[INFO](UPDATER) Update available")
+    const response = await dialog.showMessageBox({
+      type: "question",
+      title: "Update Available",
+      message: "A new update is available. Do you want to download and install it now?",
+      buttons: ["Yes", "No"],
+    })
+    if (response.response == 0){
+      updaterWindow = await createUpdaterWindow()
+      autoUpdater.on("download-progress", (progress)=>{
+        console.log("[INFO](UPDATER) Download progress:", progress);
+        updaterWindow.webContents.send("downloadProgress", progress);
+      })
+      ipcMain.on("getDownloadStatus", (event)=>{
+        console.log("[INFO](UPDATER) Download status requested")
+        const webContents = event.sender
+        const win = BrowserWindow.fromWebContents(webContents)
+        if (downloaded) {
+          win.webContents.send("downloadComplete")
+        }
+      })
+      ipcMain.on("readyInstall", ()=>{
+        console.log("[INFO](UPDATER) Ready to install update")
+        autoUpdater.quitAndInstall();
+      })
+    }
+  })
+}
+
+app.whenReady().then(async() => {
+    // Check if configured
+    if (app.isPackaged){
+      updateApp();
+    }
+    const result = await validateConfig(app);
+    
+    if (result == "SETUP") {
+      createSetupWindow();
+      await new Promise((resolve, reject) => {
+        ipcMain.once("saveConfig", (event, config) => {
+          store.set("version", app.getVersion())
+          const webContents = event.sender
+          const win = BrowserWindow.fromWebContents(webContents)
+          win.close()
+          resolve(config);
+        })
+      });
+    }
     makeTray();
     registerShortcuts();
     initialiseWritingToolsIPC(app);

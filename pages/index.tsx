@@ -6,6 +6,10 @@ export default function Home() {
     router.push("/writingTools")
   } else if (router.query.route === "prompt") {
     router.push("/prompt")
+  } else if (router.query.route === "setup") {
+    router.push("/setup")
+  } else if (router.query.route === "updater") {
+    router.push("/updater")
   }
   return <></>
 }

@@ -1,33 +1,56 @@
-import { getConfig } from './getConfig.js';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
-import { BrowserWindow, ipcMain } from 'electron';
-import { v4 as uuidv4 } from 'uuid';
+import { BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { webTools } from './webTools.js';
+import { createScreenTools } from './screenTools.js';
+import Store from 'electron-store';
 
-export async function chat(app, prompt, messages) {
-    const config = await getConfig(app)
+export async function chat(app, prompt, messages, tools) {
+    const store = new Store()
     const google = createGoogleGenerativeAI({
-        apiKey: config['PROVIDERS']['google']['API_KEY']
+        apiKey: store.get("providers.google.apiKey")
     });
 
     var newMessages = [...messages];
+    if (tools.includes("screen")){
+        const sources = await desktopCapturer.getSources({
+            types: ['screen'],
+            thumbnailSize: { width: 1280, height: 720 }
+        });
+        // Get the primary screen source
+        const primarySource = sources[0];
+        if (primarySource) {
+            // Convert to base64
+            const screenshotBase64 = primarySource.thumbnail.toPNG().toString('base64');
+            prompt['content'].push({type: 'image', image: screenshotBase64});
+        }
+    }
     newMessages.push(prompt);
+    
+    // Create screen tools with app context
+    // const screenTools = createScreenTools(app);
+    
+    // Dynamic system prompt based on available tools
+    let systemPrompt = "Your name is Fox, and you are a friendly AI assistant.";
+    if (tools.includes("screen")) {
+        systemPrompt += " You have been provided with a screenshot of the user's screen and can see what they're currently viewing on their display. Use this visual context to better assist them.";
+    }
     
     const response = streamText({
         model: google(
-            config['MODELS']['CHAT']['MODEL'], {
-                // useSearchGrounding: true,
-                // dynamicRetrievalConfig: {
-                //     mode: 'MODE_DYNAMIC',
-                //     dynamicThreshold: 0.8,
-                // }
+            store.get("chat.model"), {
+                useSearchGrounding: tools.includes('search'),
+                dynamicRetrievalConfig: {
+                    mode: 'MODE_DYNAMIC',
+                    dynamicThreshold: 0.8,
+                }
             }
         ), 
-        system: "Your name is Fox, and you are a friendly AI assistant.", 
+        system: systemPrompt, 
         messages: newMessages,
         tools: {
             ...webTools,
+            // ...screenTools,
         },
         maxSteps: 5, // allow up to 5 steps
     });
@@ -43,9 +66,10 @@ export function initialiseChatIPC(app) {
         const win = BrowserWindow.fromWebContents(webContents)
         console.log('generating')
         var newMessages = [];
+        var responseWithData;
         // const uid = uuidv4();
         try {
-            const responseWithData = await chat(app, data.prompt, data.messages)
+            responseWithData = await chat(app, data.prompt, data.messages, data.tools)
             var messageContent = ""
             for await (const part of responseWithData.response.textStream) {
                 messageContent += part
@@ -54,14 +78,18 @@ export function initialiseChatIPC(app) {
             // newMessages = [...responseWithData.newMessages];
             // newMessages.push({"role": "assistant", "content": messageContent, "sources": await responseWithData.response.sources});
             const messages = (await responseWithData.response.response).messages
-            for (const message of messages) {
-                console.log(message)
-            }
+            // for (const message of messages) {
+            //     console.log(message)
+            // }
             newMessages = [...responseWithData.newMessages, ...messages];
         } catch (error) {
             console.error('[ERROR](API) Error in chat response:', error);
             return win.webContents.send("getChatResponse", {"status": 'error', "error": error.message});
         }
-        win.webContents.send("getChatResponse", {"status": 'completed', "response": messageContent, "newMessages": newMessages});
+        var sources;
+        if (data.tools.includes("search")){
+            sources = await responseWithData.response.sources
+        }
+        win.webContents.send("getChatResponse", {"status": 'completed', "responseID": newMessages[newMessages.length -1].id, "sources": sources, "newMessages": newMessages});
     });
 }
