@@ -14,6 +14,13 @@ const { autoUpdater } = electronUpdater;
 
 app.requestSingleInstanceLock() // Ensure only one instance of the app is running
 
+if (app.isPackaged){
+  app.setLoginItemSettings({
+    openAtLogin: false,
+    path: app.getPath("exe"),
+    args: ['--hidden']
+  })
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
