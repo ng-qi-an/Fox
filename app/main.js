@@ -16,7 +16,7 @@ app.requestSingleInstanceLock() // Ensure only one instance of the app is runnin
 
 if (app.isPackaged){
   app.setLoginItemSettings({
-    openAtLogin: false,
+    openAtLogin: true,
     path: app.getPath("exe"),
     args: ['--hidden']
   })
