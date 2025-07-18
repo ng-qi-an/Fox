@@ -12,6 +12,8 @@ import Store from 'electron-store';
 import { validateConfig } from './modules/config.js';
 const { autoUpdater } = electronUpdater;
 
+autoUpdater.autoDownload = false;
+
 app.requestSingleInstanceLock() // Ensure only one instance of the app is running
 
 if (app.isPackaged){
@@ -93,9 +95,13 @@ function makeTray() {
 
 function registerShortcuts(){
   globalShortcut.register('F8', () => {
-    console.log(activePromptWindow)
     if (!activePromptWindow) {
       createPromptWindow()
+    } else {
+      if (activePromptWindow.isMinimized()) {
+        activePromptWindow.restore();
+      }
+      activePromptWindow.focus();
     }
   })
   globalShortcut.register('Shift+F8', () => {
@@ -282,6 +288,7 @@ function updateApp(){
   autoUpdater.on('update-downloaded', () => {
     console.log("[INFO](UPDATER) Update downloaded")
     downloaded = true
+    updaterWindow.webContents.send("downloadComplete")
   });
   autoUpdater.on('update-not-available', () => {
     console.log("[INFO](UPDATER) No updates available")
@@ -296,6 +303,7 @@ function updateApp(){
     })
     if (response.response == 0){
       updaterWindow = await createUpdaterWindow()
+      autoUpdater.downloadUpdate();
       autoUpdater.on("download-progress", (progress)=>{
         console.log("[INFO](UPDATER) Download progress:", progress);
         updaterWindow.webContents.send("downloadProgress", progress);

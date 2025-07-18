@@ -147,6 +147,12 @@ body {
     margin-bottom: 3px;
 }
 
+.message-content ol, .message-content ul {
+    list-style: initial;
+    list-style-position: inside;
+}
+
 .message-content li {
+    display: list-item;
     margin-bottom: 5px;
 }

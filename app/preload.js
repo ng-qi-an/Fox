@@ -6,5 +6,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     },
     send: (channel, args) => {
         ipcRenderer.send(channel, args);
+    },
+    off: (channel, callback) => {
+        ipcRenderer.off(channel, callback);
+    },
+    removeAllListeners: (channel) => {
+        ipcRenderer.removeAllListeners(channel);
     }
 });

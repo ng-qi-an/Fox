@@ -7,6 +7,8 @@ declare global {
     electronAPI: {
       on: (channel: string, callback: (event: Electron.IpcRendererEvent, data: any) => void) => void;
       send: (channel: string, data?: any) => void;
+      off: (channel: string, callback: (event: Electron.IpcRendererEvent, data: any) => void) => void;
+      removeAllListeners: (channel: string) => void;
     }
   }
 }

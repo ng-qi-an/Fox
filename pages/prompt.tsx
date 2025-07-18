@@ -1,10 +1,11 @@
 import { Cross, Minus, PaperclipIcon, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { set } from "zod/v4";
+import { file, set } from "zod/v4";
 
 export default function Prompt(){
     const [messages, setMessages] = useState<Record<string, any>[]>([]);
+    const [completed, setCompleted] = useState(true);
     const [promptInput, setPromptInput] = useState("");
     const [showAllSources, setShowAllSources] = useState("");
     const [platform, setPlatform] = useState("");
@@ -12,9 +13,10 @@ export default function Prompt(){
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [openToolsDrawer, setOpenToolsDrawer] = useState(false);
     const [sources, setSources] = useState<Record<string, Record<string, string>[]>>({});
-
     const inputRef = useRef(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
     useEffect(()=>{
         window.electronAPI.send("getPlatform");
         window.electronAPI.on("getChatResponse", (event, data) => {
@@ -26,10 +28,11 @@ export default function Prompt(){
                     newSources[data.responseID] = data.sources;
                     setSources(newSources);
                 }
+                setCompleted(true);
             } else if (data.status == 'generating') {
-                const lastMessage = {...messages[messages.length - 1]}
-                lastMessage.content = data.response
-                setMessages((old) => [...old.slice(0, -1), lastMessage])
+                const copyMessages = [...messages];
+                copyMessages[copyMessages.length - 1].content = data.response
+                setMessages(copyMessages)
                 window.electronAPI.send("setAlwaysOnTop", true)
             }
         });
@@ -37,22 +40,43 @@ export default function Prompt(){
             console.log("[FOX PROMPT] Platform detected:", platform);
             setPlatform(platform);
         });
-        window.addEventListener("keydown", (event) => {
-            if (event.key.match(/^[A-Za-z0-9]+$/g) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        return ()=>{
+            window.electronAPI.removeAllListeners("getChatResponse");
+            window.electronAPI.removeAllListeners("getPlatform");
+        }
+    }, [])
+    useEffect(()=>{
+        window.onkeydown = (event) => {
+            if (event.key == "Escape") {
+                if (openToolsDrawer) {
+                    setOpenToolsDrawer(false);
+                    return;
+                }else if (messages.length < 3) {
+                    window.electronAPI.send("closeWindow", "prompt");
+                } else {
+                    window.electronAPI.send("minimiseWindow")
+                }
+            } else if (event.key.match(/^[A-Za-z0-9]+$/g) && !event.ctrlKey && !event.metaKey && !event.altKey) {
                 if (inputRef.current) {
                     (inputRef.current as HTMLInputElement).focus();
                 }
-            }
-        });
-
-    }, [])
+            } 
+        };
+        return ()=>{
+            window.onkeydown = null; // Clean up the event listener
+        }
+    }, [messages, openToolsDrawer])
     async function sendChatMessage(){
         console.log(platform)
+        if ((promptInput.trim() === "" && !selectedFile) || !completed) {
+            console.log("[FOX PROMPT] No input provided, not sending message.");
+            return;
+        }
         if (messages.length < 1 && platform && platform == "win32"){
             window.electronAPI.send("moveWindow", {y: -(500 - (selectedFile ? 115 : 64))});
         }
         
-        // Handle file processing - convert image to base64
+        // Handle file processing - convert base64 to data URL if it's an image
         let fileContent = null;
         if (selectedFile) {
             console.log("[FOX PROMPT] File selected:", selectedFile.name, selectedFile.type, selectedFile.size);
@@ -82,23 +106,32 @@ export default function Prompt(){
         }
         
         setMessages((old) => [...old, {role: "user", content: messageContent}, {role: "assistant", content: [{type: "text", text: ""}]}]);
+        
+        // Smooth scroll to bottom after message is sent
+        setTimeout(() => {
+            if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTo({
+                    top: chatContainerRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 0);
+        
+        // Expand the chat window
         window.electronAPI.send("getChatResponse", {prompt: {role: "user", content: messageContent}, messages: messages, image: fileContent, tools: selectedTools});
-        window.electronAPI.send("resizeWindow", {height: 500});
-        window.electronAPI.send("setAlwaysOnTop", true);
-        ((inputRef.current!) as HTMLDivElement).textContent = ""; // Clear input after sending
+        if (messages.length < 1){
+            window.electronAPI.send("resizeWindow", {height: 500});
+            window.electronAPI.send("setAlwaysOnTop", true);
+        }
+        ((inputRef.current!) as HTMLDivElement).textContent = "";
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
         setPromptInput("");
-        setSelectedFile(null); // Clear file after sending
+        setSelectedFile(null);
+        setCompleted(false);
     }
-    // useEffect(()=>{
-    //     window.onblur = ()=>{
-    //         if (messages.length < 1){
-    //             window.electronAPI.send("closeWindow", "prompt");
-    //         }
-    //     }
-    //     return ()=>{
-    //         window.onblur = null; // Clean up the event listener
-    //     }
-    // }, [messages])
+
     return <div className="main draggable flex flex-col">
         {messages.length > 0 && 
         <>
@@ -112,7 +145,7 @@ export default function Prompt(){
                     window.electronAPI.send("closeWindow", "prompt");
                 }}><X className="w-[18px] h-[18px]" strokeWidth={'3px'}/></button>
             </div>
-            <div id="chat" className="py-2 px-4 overflow-auto no-drag flex flex-col gap-3 h-full">
+            <div id="chat" ref={chatContainerRef} className="py-2 px-4 overflow-auto no-drag flex flex-col gap-3 h-full">
                 {messages.map((message, index) => {
                     const isUser = message.role === "user";
                     const uid = message.id || index; // Use index as fallback UID
@@ -147,25 +180,29 @@ export default function Prompt(){
                             </div>
                         })}
                     </div>
-                    : <div key={uid} id={uid}  className="message-content mb-2 w-full max-w-[95%] pl-4">
-                        <Markdown>{message.content[0].text}</Markdown>
-                        {sources[uid] && sources[uid].length > 0 && <div className="flex items-center flex-wrap gap-x-2">
-                            {sources[uid].map((source:Record<string, string>, indx:number) => {
-                                if (showAllSources == uid || indx < 3) {
-                                    return <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className="text-xs text-foreground/50 hover:text-foreground underline">{source.title}</a>
-                                }
-                            })}
-                            {sources[uid].length > 4 && (showAllSources != uid ? 
-                                <button className="text-xs text-foreground/50 hover:text-foreground underline" onClick={() => setShowAllSources(uid)}>+{sources[uid].length - 3}</button>
-                            : 
-                                <button className="text-xs text-foreground/50 hover:text-foreground underline" onClick={() => setShowAllSources("")}>Show less</button>
-                            )}
-                        </div>}
+                    : <div key={uid} id={uid} className="message-content pb-2 w-full max-w-[95%] pl-4" style={{minHeight: (messages.length - 1) == index ? 'calc(100vh - 180px)' : 'max-content'}}>
+                        {!message.content[0].text ?
+                            <div className="h-3 w-3 rounded-full bg-foreground animate-pulse"></div>
+                        : <>
+                            <Markdown>{message.content[0].text}</Markdown>
+                                {sources[uid] && sources[uid].length > 0 && <div className="flex items-center flex-wrap gap-x-2">
+                                    {sources[uid].map((source:Record<string, string>, indx:number) => {
+                                        if (showAllSources == uid || indx < 3) {
+                                            return <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className="text-xs text-foreground/50 hover:text-foreground underline">{source.title}</a>
+                                        }
+                                    })}
+                                    {sources[uid].length > 4 && (showAllSources != uid ? 
+                                        <button className="text-xs text-foreground/50 hover:text-foreground underline" onClick={() => setShowAllSources(uid)}>+{sources[uid].length - 3}</button>
+                                    : 
+                                        <button className="text-xs text-foreground/50 hover:text-foreground underline" onClick={() => setShowAllSources("")}>Show less</button>
+                                    )}
+                                </div>}
+                            </>
+                        }
                     </div>)
                 })}
             </div>
         </>}
-        
         
         <form id="promptForm" className={`h-max no-drag pl-3 px-4 flex flex-col bottom-0 left-0 w-full ${messages.length > 0 ? 'border-t border-foreground/10' : ''}`} onSubmit={async (e)=>{
                 e.preventDefault();
@@ -269,7 +306,7 @@ export default function Prompt(){
                         </button>
                     </>}
                 </div>
-                {promptInput == "" && !openToolsDrawer && <p className="opacity-50 absolute left-13">{selectedTools.includes('search') ? "Ask the web for anything" : selectedTools.includes('screen') ? "Ask anything about your s" : "Ask anything"}</p>}
+                {promptInput == "" && !openToolsDrawer && <p className="opacity-50 absolute left-13">{selectedTools.includes('search') ? "Ask the web for anything" : selectedTools.includes('screen') ? "Ask anything about your screen" : "Ask anything"}</p>}
                 <div ref={inputRef} id="prompt" contentEditable onClick={()=> setOpenToolsDrawer(false)} onInput={(e)=> {
                     const text = (e.target as HTMLDivElement).innerText
                     var setTool = false;
