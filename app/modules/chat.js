@@ -2,7 +2,6 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { webTools } from './webTools.js';
-import { createScreenTools } from './screenTools.js';
 import Store from 'electron-store';
 
 export async function chat(app, prompt, messages, tools) {
