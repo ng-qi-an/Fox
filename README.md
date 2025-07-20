@@ -1,40 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 🦊 Fox
 
-## Getting Started
+**An AI-powered personal assistant for your desktop**
 
-First, run the development server:
+Fox is a powerful desktop application that brings AI assistance directly to your workflow. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Fox helps you write better, think clearer, and work more efficiently.
+
+## ✨ Features
+
+### 🔧 Writing Tools
+- **Smart Text Enhancement**: Instantly improve any selected text with AI-powered rewriting
+- **Multiple Tone Options**: Professional, friendly, concise - adapt your writing to any context
+- **Content Organization**: Convert text to bullet points, ordered lists, or summaries
+- **Custom Prompts**: Create personalized writing assistance with custom instructions
+- **System-wide Integration**: Works with any application - just select text and activate
+
+### 💬 Intelligent Chat
+- **AI-Powered Conversations**: Engage with advanced AI models for assistance, brainstorming, and problem-solving
+- **Tool Integration**: Access powerful tools like web search, YouTube transcripts, and more _(Requires [fox extension](/#Features))_
+- **File Attachments**: Upload and discuss documents (coming soon) and images
+- **Contextual Assistance**: Get help with code, writing, research, and creative tasks
+
+### ⚡ Quick Access
+- **Global Hotkeys**: `F8` for chat, `Shift+F8` for writing tools
+- **System Tray**: Always accessible from your system tray
+- **Auto-start**: Launches with your system for instant availability
+- **Cross-platform**: Works on Windows and macOS
+
+## 🛠️ Built With
+
+Fox is built using modern web technologies wrapped in a desktop application:
+
+- **Frontend**: [Next.js](https://nextjs.org/) with React 19 and TypeScript
+- **Desktop Framework**: [Electron](https://electronjs.org/) for cross-platform compatibility
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with custom components
+- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) with Google Gemini models
+- **State Management**: Electron Store for persistent configuration
+- **UI Components**: Shadcn UI primitives with custom styling
+
+## 🚀 Getting started
+
+### Prebuilt Installers
+1. Download the latest setup file from [Github Releases]()
+2. Run the setup
+
+### Build it yourself
+#### Prerequisites
+- Node.js 18+ installed on your system
+- An AI api key
+
+#### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ng-qi-an/Fox.git
+   cd Fox
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development environment**
+   ```bash
+   npm run dev
+   ```
+   This will start both the Next.js development server and Electron simultaneously.
+
+
+### 🚢 Building for Production
+
+To create a distributable version:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will create platform-specific installers in the `dist` folder.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## 🧑‍💻 First Time Setup
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+1. Launch Fox and complete the initial setup wizard
+2. Enter your Google AI API key
+3. Configure your preferred AI models for chat and writing tools
+4. Customize hotkeys and preferences as needed
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## 🔒 Privacy & Security
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- All API keys are stored locally and encrypted
+- No data is collected or transmitted to third parties
+- AI processing happens through your own API credentials
+- Selected text is only sent to AI providers when explicitly requested
 
-## Deploy on Vercel
+## 📝 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## 🙏 Acknowledgments
+
+- Built with the powerful [Vercel AI SDK](https://sdk.vercel.ai/)
+- UI components from [Radix UI](https://radix-ui.com/)
+- Icons from [Lucide](https://lucide.dev/)
+- Powered by [Google Gemini](https://deepmind.google/technologies/gemini/) AI models
+
+---
+
+**Made with ❤️ by [Qi An](https://github.com/ng-qi-an)**
+
+*Fox - Your AI companion for a more productive workflow*

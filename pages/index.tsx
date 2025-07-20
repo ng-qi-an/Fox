@@ -10,6 +10,8 @@ export default function Home() {
     router.push("/setup")
   } else if (router.query.route === "updater") {
     router.push("/updater")
+  } else if (router.query.route === "settings") {
+    router.push("/settings")
   }
   return <></>
 }

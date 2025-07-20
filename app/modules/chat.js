@@ -3,12 +3,21 @@ import { streamText } from 'ai';
 import { BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { webTools } from './webTools.js';
 import Store from 'electron-store';
+import { createOpenAI, openai } from '@ai-sdk/openai';
 
 export async function chat(app, prompt, messages, tools) {
     const store = new Store()
-    const google = createGoogleGenerativeAI({
-        apiKey: store.get("providers.google.apiKey")
-    });
+    var model;
+    if (store.get("chat.provider") == "google") {
+        model = createGoogleGenerativeAI({
+            apiKey: store.get("providers.google.apiKey")
+        });
+    } else if (store.get("chat.provider") == "openai") {
+        model = createOpenAI({
+            apiKey: store.get("providers.openai.apiKey"),
+            compatibility: 'strict', // strict mode, enable when using the OpenAI API
+        }).responses
+    }
 
     var newMessages = [...messages];
     if (tools.includes("screen")){
@@ -30,19 +39,29 @@ export async function chat(app, prompt, messages, tools) {
     // const screenTools = createScreenTools(app);
     
     // Dynamic system prompt based on available tools
-    let systemPrompt = "Your name is Fox, and you are a friendly AI assistant.";
+    let systemPrompt = "Your name is Fox, and you are a friendly AI assistant. Provide concise but helpful responses to user queries. Highlight important keywords in bold. ";
     if (tools.includes("screen")) {
         systemPrompt += " You have been provided with a screenshot of the user's screen and can see what they're currently viewing on their display. Use this visual context to better assist them.";
     }
+    const modelOptions = {}
+    if (store.get("chat.provider") == "google"){
+        if (tools.includes("search")){
+            modelOptions.useSearchGrounding = tools.includes('search');
+            modelOptions.dynamicRetrievalConfig = {
+                mode: 'MODE_DYNAMIC',
+                dynamicThreshold: 0.8,
+            }   
+        }
+    } else if (store.get("chat.provider") == "openai"){
+        if (tools.includes("search")){
+            webTools.web_search_preview = openai.tools.webSearchPreview()
+        }
+    }
     
     const response = streamText({
-        model: google(
+        model: model(
             store.get("chat.model"), {
-                useSearchGrounding: tools.includes('search'),
-                dynamicRetrievalConfig: {
-                    mode: 'MODE_DYNAMIC',
-                    dynamicThreshold: 0.8,
-                }
+                ...modelOptions
             }
         ), 
         system: systemPrompt, 
@@ -51,6 +70,8 @@ export async function chat(app, prompt, messages, tools) {
             ...webTools,
             // ...screenTools,
         },
+        toolChoice: (store.get("chat.provider") === "openai" && tools.includes("search")) ? { type: 'tool', toolName: 'web_search_preview' } : "auto",
+        toolCallStreaming: true,
         maxSteps: 5, // allow up to 5 steps
     });
     
@@ -70,9 +91,12 @@ export function initialiseChatIPC(app) {
         try {
             responseWithData = await chat(app, data.prompt, data.messages, data.tools)
             var messageContent = ""
-            for await (const part of responseWithData.response.textStream) {
-                messageContent += part
-                win.webContents.send("getChatResponse", {'response': messageContent, "status": 'generating'});
+            for await (const part of responseWithData.response.fullStream) {
+                console.log(part)
+                if (part.type == "text-delta"){
+                    messageContent += part.textDelta
+                    event.reply("getChatResponse", {'response': messageContent, "status": 'generating'});
+                }
             }
             // newMessages = [...responseWithData.newMessages];
             // newMessages.push({"role": "assistant", "content": messageContent, "sources": await responseWithData.response.sources});

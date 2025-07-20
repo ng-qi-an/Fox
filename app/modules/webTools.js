@@ -7,29 +7,20 @@ import Innertube from 'youtubei.js';
  * Tool for getting webpage context when the user refers to web content
  */
 export const getWebpageContentTool = {
-    description: `Use this tool ONLY when the user is specifically asking about browser/webpage content. This gives you access to their current browser tab content.
+    description: `Access browser tab content when user asks about webpage content.
 
-TRIGGER PHRASES (use tool immediately when you see these AND they relate to browser/web content):
-- "this page" or "this webpage" or "this website" 
-- "summarize this page/site/website"
-- "what does this page say"
-- "explain this website"
-- "analyze this webpage"
-- "tell me about this site"
-- References to browser, webpage, website, site, page in current or previous messages
+WHEN TO USE:
+- User mentions: "this page/webpage/website", "summarize this page", "what does this page say"
+- References to browser/webpage content in current or previous messages
 
-DO NOT TRIGGER for:
+DON'T USE FOR:
 - General screen questions (use screen analysis instead)
-- "what am I looking at" without webpage context
-- "what's on my screen" 
-- Questions about desktop applications or non-browser content
+- Non-browser content or desktop applications
 
-The user has browser integration - you can access their current webpage without needing a URL. 
-Only use this tool when the context clearly indicates they're asking about webpage/browser content.
-
-Example: User says "summarize this webpage" → immediately call getWebpageContent with reason "to gain context of the current webpage to help the user"`,
+Browser integration allows direct webpage access without URLs.
+Use when user clearly requests webpage/browser content analysis.`,
     parameters: z.object({
-        reason: z.string().describe('Why you need access to the webpage content to better assist the user'),
+        reason: z.string().describe('Why webpage content access is needed'),
     }),
     execute: async ({ reason }) => {
         console.log(`[TOOL] Webpage context requested: ${reason}`);
@@ -53,42 +44,27 @@ Please now process this content according to the user's request (${reason}).`;
 };
 
 export const getTranscriptTool = tool({
-    description: `Use this tool to get the transcript of a YouTube video when the user specifically requests it. This tool extracts the full transcript/captions from YouTube videos for analysis, summarization, or reference.
+    description: `Tool for extracting YouTube video transcripts.
 
-TRIGGER PHRASES (use tool immediately when you see these AND they relate to YouTube videos):
-- "transcript of this video"
-- "what does this video say"
-- "summarize this YouTube video"
-- "get the transcript"
-- "video transcript"
-- "what's in this video"
-- "analyze this video content"
-- "extract text from video"
-- References to YouTube video content, captions, or transcript
+WHEN TO USE: When user specifically requests video transcript/content analysis from:
+- Current YouTube page they're viewing
+- Mentions like "transcript", "what's in this video", "summarize video", etc.
 
-WHEN TO USE:
-- User asks for video transcript while viewing a YouTube page
-- User wants to analyze or summarize video content
-- User needs text version of video for accessibility
-- User asks about video content without watching
+CAPABILITIES:
+- Automatically detects video ID from current page
+- Returns full transcript text for analysis
 
-HOW IT WORKS:
-- If user is on a YouTube page, automatically detects video ID
-- Can also work with manually provided YouTube video urls
-- Extracts official captions/transcript when available
-- Returns full text content for processing
-
-Example: User says "get the transcript of this video" while on YouTube → immediately call with reason "to extract video transcript for user analysis"`,
+DO NOT use for general video questions unrelated to transcript content.`,
     parameters: z.object({
-        reason: z.string().describe('Why you need access the youtube video to better assist the user'),
-        videoURL: z.string().optional().describe('YouTube video URL if applicable')
+        reason: z.string().describe('Why transcript access is needed'),
+        // videoURL: z.string().optional().describe('Optional YouTube URL')
     }),
-    execute: async ({ reason, videoURL:pVideoURL }) => {
+    execute: async ({ reason }) => {
         var videoId;
         console.log(`[TOOL] Youtube transcript requested: ${reason}`);
         try { 
             const yt = await Innertube.create({ generate_session_locally: true });
-            if (!pVideoURL) {
+            // if (!pVideoURL) {
                 console.log("No video URL provided, requesting from extension");
                 const response = await getVideoId();
                 console.log(response)
@@ -97,16 +73,16 @@ Example: User says "get the transcript of this video" while on YouTube → immed
                 } else {
                     videoId = response.videoId;
                 }
-            } else {
-                const url = new URL(pVideoURL);
-                if (url.hostname !== 'www.youtube.com' && url.hostname !== 'youtube.com' && url.hostname !== 'youtu.be') {
-                    return `Error: Invalid YouTube URL provided. Please provide a valid YouTube video URL.`;
-                }
-                videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
-                if (!videoId) {
-                    return `Error: Invalid YouTube URL provided. Please provide a valid YouTube video URL.`;
-                }
-            }
+            // } else {
+            //     const url = new URL(pVideoURL);
+            //     if (url.hostname !== 'www.youtube.com' && url.hostname !== 'youtube.com' && url.hostname !== 'youtu.be') {
+            //         return `Error: Invalid YouTube URL provided. Please provide a valid YouTube video URL.`;
+            //     }
+            //     videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
+            //     if (!videoId) {
+            //         return `Error: Invalid YouTube URL provided. Please provide a valid YouTube video URL.`;
+            //     }
+            // }
             console.log(`Using video ID: ${videoId}`);
             const info = await yt.getInfo(videoId);
             try {

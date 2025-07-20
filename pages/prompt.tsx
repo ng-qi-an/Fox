@@ -21,6 +21,33 @@ export default function Prompt(){
 
     useEffect(()=>{
         window.electronAPI.send("getPlatform");
+        window.electronAPI.on("getPlatform", (event, platform) => {
+            console.log("[FOX PROMPT] Platform detected:", platform);
+            setPlatform(platform);
+        });
+        return ()=>{
+            window.electronAPI.removeAllListeners("getPlatform");
+        }
+    }, [])
+
+    useEffect(()=>{
+        window.onkeydown = (event) => {
+            if (event.key == "Escape") {
+                if (openToolsDrawer) {
+                    setOpenToolsDrawer(false);
+                    return;
+                }else if (messages.length < 3) {
+                    window.electronAPI.send("closeWindow", "prompt");
+                } else {
+                    window.electronAPI.send("minimiseWindow")
+                }
+            } else if (event.key.match(/^[A-Za-z0-9/]+$/g) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                if (inputRef.current) {
+                    (inputRef.current as HTMLInputElement).focus();
+                }
+            } 
+        };
+        
         window.electronAPI.on("getChatResponse", (event, data) => {
             if (data.status == 'completed'){
                 setMessages(data.newMessages)
@@ -33,39 +60,14 @@ export default function Prompt(){
                 setCompleted(true);
             } else if (data.status == 'generating') {
                 const copyMessages = [...messages];
-                copyMessages[copyMessages.length - 1].content = data.response
+                copyMessages[copyMessages.length - 1].content[0].text = data.response;
                 setMessages(copyMessages)
                 window.electronAPI.send("setAlwaysOnTop", true)
             }
         });
-        window.electronAPI.on("getPlatform", (event, platform) => {
-            console.log("[FOX PROMPT] Platform detected:", platform);
-            setPlatform(platform);
-        });
-        return ()=>{
-            window.electronAPI.removeAllListeners("getChatResponse");
-            window.electronAPI.removeAllListeners("getPlatform");
-        }
-    }, [])
-    useEffect(()=>{
-        window.onkeydown = (event) => {
-            if (event.key == "Escape") {
-                if (openToolsDrawer) {
-                    setOpenToolsDrawer(false);
-                    return;
-                }else if (messages.length < 3) {
-                    window.electronAPI.send("closeWindow", "prompt");
-                } else {
-                    window.electronAPI.send("minimiseWindow")
-                }
-            } else if (event.key.match(/^[A-Za-z0-9]+$/g) && !event.ctrlKey && !event.metaKey && !event.altKey) {
-                if (inputRef.current) {
-                    (inputRef.current as HTMLInputElement).focus();
-                }
-            } 
-        };
         return ()=>{
             window.onkeydown = null; // Clean up the event listener
+            window.electronAPI.removeAllListeners("getChatResponse");
         }
     }, [messages, openToolsDrawer])
     async function sendChatMessage(){

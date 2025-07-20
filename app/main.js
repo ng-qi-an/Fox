@@ -9,7 +9,8 @@ import { initialiseChatIPC } from './modules/chat.js';
 import { startServer } from './server.js';
 import electronUpdater from 'electron-updater';
 import Store from 'electron-store';
-import { validateConfig } from './modules/config.js';
+import { validateConfig, initialiseConfigIPC } from './modules/config.js';
+import { exit } from 'process';
 const { autoUpdater } = electronUpdater;
 
 autoUpdater.autoDownload = false;
@@ -82,6 +83,9 @@ function makeTray() {
                 createPromptWindow()
             }
         }},
+        { label: "Settings", type: 'normal', click:()=>{
+          createSettingsWindow()
+        }},
         { label: 'Quit', type: 'normal', click: () => app.quit() },
     ])
     tray.setToolTip('Fox')
@@ -109,6 +113,31 @@ function registerShortcuts(){
       createWritingToolsWindow()
     }
   })
+}
+
+async function createSettingsWindow(){
+  const win = new BrowserWindow({
+    titleBarStyle: "hidden",
+    backgroundColor: "#99000000",
+    icon: appIcon,
+    transparent: process.platform == "darwin" && true,
+    vibrancy: process.platform == "darwin" && "under-window",
+    visualEffectState: process.platform == "darwin" && "followWindow",
+    backgroundMaterial: process.platform == "win32" && "acrylic",
+    width: 900,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    }
+  })
+  if (app.isPackaged) {
+    await appServe(win, {route: "settings"})
+  } else {
+    win.loadURL("http://localhost:3000/settings");
+    win.webContents.on("did-fail-load", (e, code, desc) => {
+      win.webContents.reloadIgnoringCache();
+    });
+  }
 }
 
 
@@ -233,8 +262,8 @@ async function createSetupWindow(){
     vibrancy: process.platform == "darwin" && "under-window", // in my case...
     visualEffectState: process.platform == "darwin" && "followWindow",
     backgroundMaterial: process.platform == "win32" && "acrylic",
-    width: 480,
-    height: 530,
+    width: 700,
+    height: 600,
     webPreferences: {
         preload: path.join( __dirname, 'preload.js'),
     }
@@ -249,6 +278,7 @@ async function createSetupWindow(){
       win.webContents.reloadIgnoringCache();
     });
   }
+  return win;
 }
 
 async function createUpdaterWindow(){
@@ -329,17 +359,27 @@ app.whenReady().then(async() => {
     if (app.isPackaged){
       updateApp();
     }
+    initialiseConfigIPC(app);
     const result = await validateConfig(app);
     
     if (result == "SETUP") {
-      createSetupWindow();
+      const setupWindow = await createSetupWindow();
       await new Promise((resolve, reject) => {
+        var closeSetup = true;
+        setupWindow.on("closed", ()=>{
+          if (closeSetup) {
+            app.exit(0)
+          }
+        })
         ipcMain.once("saveConfig", (event, config) => {
           store.set("version", app.getVersion())
           const webContents = event.sender
           const win = BrowserWindow.fromWebContents(webContents)
-          win.close()
-          resolve(config);
+          setTimeout(()=>{
+            closeSetup = false;
+            win.close()
+            resolve(config);
+          }, 100)
         })
       });
     }

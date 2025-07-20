@@ -1,7 +1,9 @@
 {
   "name": "fox",
-  "version": "0.4.2-alpha",
-  "private": true,
+  "description": "An AI-powered personal assistant for your desktop",
+  "author": "Qi An",
+  "version": "1.0.0-beta",
+  "private": false,
   "main": "app/main.js",
   "type": "module",
   "repository": {
@@ -30,6 +32,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.22",
+    "@ai-sdk/openai": "^1.3.23",
     "ai": "^4.3.17",
     "electron-serve": "^2.1.1",
     "electron-store": "^10.1.0",
@@ -44,10 +47,16 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@icons-pack/react-simple-icons": "^13.5.0",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "concurrently": "^9.2.0",
     "dotenv-cli": "^8.0.0",
     "electron": "^37.2.1",
@@ -57,8 +66,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }
 }

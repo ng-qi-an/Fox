@@ -37,7 +37,7 @@ export default function Message({message, last, sources, index}:{message: Record
             </div>
         })}
     </div>
-    : <div key={uid} id={uid} className="message-content pb-2 w-full max-w-[95%] pl-4" style={{minHeight: last ? 'calc(100vh - 180px)' : 'max-content'}}>
+    : <div key={uid} id={uid} className="message-content pb-2 w-full max-w-[95%] pl-4 prose" style={{minHeight: last ? 'calc(100vh - 180px)' : 'max-content'}}>
         {!message.content[0].text ?
             <div className="h-3 w-3 rounded-full bg-foreground animate-pulse"></div>
         : <>
