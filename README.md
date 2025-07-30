@@ -7,39 +7,43 @@ Fox is a powerful desktop application that brings AI assistance directly to your
 ## ✨ Features
 
 ### 🔧 Writing Tools
-- **Smart Text Enhancement**: Instantly improve any selected text with AI-powered rewriting
+- 🪄 **Smart Text Enhancement**: Instantly improve any selected text with AI-powered rewriting
 - **Multiple Tone Options**: Professional, friendly, concise - adapt your writing to any context
-- **Content Organization**: Convert text to bullet points, ordered lists, or summaries
+- 📃 **Content Organization**: Convert text to bullet points, ordered lists, or summaries
 - **Custom Prompts**: Create personalized writing assistance with custom instructions
-- **System-wide Integration**: Works with any application - just select text and activate
+- 💻 **System-wide Integration**: Works with any application - just select text and activate
 
 ### 💬 Intelligent Chat
-- **AI-Powered Conversations**: Engage with advanced AI models for assistance, brainstorming, and problem-solving
-- **Tool Integration**: Access powerful tools like web search, YouTube transcripts, and more _(Requires [fox extension](/#Features))_
-- **File Attachments**: Upload and discuss documents (coming soon) and images
-- **Contextual Assistance**: Get help with code, writing, research, and creative tasks
+- 👋 **AI-Powered Conversations**: Engage with advanced AI models for assistance, brainstorming, and problem-solving
+- **Tool Integration**: Access powerful tools like web search, YouTube transcripts, and screen context.
+- 📁 **File Attachments**: Upload and discuss documents (coming soon) and images
+- **Contextual Assistance**: Get help with code, writing, research, and creative tasks 
 
 ### ⚡ Quick Access
-- **Global Hotkeys**: `F8` for chat, `Shift+F8` for writing tools
+- 🌍 **Global Hotkeys**: `F8` for chat, `Shift+F8` when selecting text for writing tools
 - **System Tray**: Always accessible from your system tray
-- **Auto-start**: Launches with your system for instant availability
+- 🚗 **Auto-start**: Launches with your system for instant availability
 - **Cross-platform**: Works on Windows and macOS
+- ☁️ **Auto update**: Updates on launch to get the latest features!
 
-## 🛠️ Built With
+## 🌐 Browser Extension
 
-Fox is built using modern web technologies wrapped in a desktop application:
+Fox also includes a companion **browser extension** that extends AI assistance to your **web browsing experience**. 
 
-- **Frontend**: [Next.js](https://nextjs.org/) with React 19 and TypeScript
-- **Desktop Framework**: [Electron](https://electronjs.org/) for cross-platform compatibility
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with custom components
-- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) with Google Gemini models
-- **State Management**: Electron Store for persistent configuration
-- **UI Components**: Shadcn UI primitives with custom styling
+[Download here](https://github.com/ng-qi-an/Fox-Extension)
+
+The browser extension provides:
+- Web content **summarization**
+- Research tools integration
+- Seamless connection to your Fox desktop app
+
+**⚠️ Must be installed for browser and youtube transcript to work!**
+
 
 ## 🚀 Getting started
 
 ### Prebuilt Installers
-1. Download the latest setup file from [Github Releases]()
+1. Download the latest setup file from [Github Releases](https://github.com/ng-qi-an/Fox/releases)
 2. Run the setup
 
 ### Build it yourself
@@ -99,15 +103,32 @@ This will create platform-specific installers in the `dist` folder.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+
+
+## 🛠️ Built With
+
+Fox is built using modern web technologies wrapped in a desktop application:
+
+- **Frontend**: [Next.js](https://nextjs.org/) with React 19 and TypeScript
+- **Desktop Framework**: [Electron](https://electronjs.org/) for cross-platform compatibility
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with custom components
+- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) with Google Gemini models
+- **State Management**: Electron Store for persistent configuration
+- **UI Components**: Shadcn UI primitives with custom styling
+
+
 ## 🙏 Acknowledgments
 
 - Built with the powerful [Vercel AI SDK](https://sdk.vercel.ai/)
-- UI components from [Radix UI](https://radix-ui.com/)
+- UI components from [ShadcnUI](https://radix-ui.com/)
 - Icons from [Lucide](https://lucide.dev/)
-- Powered by [Google Gemini](https://deepmind.google/technologies/gemini/) AI models
+- Help from Github Copilot
+    - Tidied much of the code up 🧹
+    - Helped design certain parts of the UI (Setup and Settings) 🎨
+    - Refactored some of the code into **components** 
+    - General debugging 🐛
 
 ---
 
 **Made with ❤️ by [Qi An](https://github.com/ng-qi-an)**
 
-*Fox - Your AI companion for a more productive workflow*
