@@ -4,6 +4,9 @@
 
 Fox is a powerful desktop application that brings AI assistance directly to your workflow. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Fox helps you write better, think clearer, and work more efficiently.
 
+## 📺 Demo
+https://github.com/user-attachments/assets/2f83becf-be13-49b6-860a-c697e4f1d5b0
+
 ## ✨ Features
 
 ### 🔧 Writing Tools
