@@ -2,7 +2,7 @@
 
 **An AI-powered personal assistant for your desktop**
 
-Fox is a powerful desktop application that brings AI assistance directly to your workflow. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Fox helps you write better, think clearer, and work more efficiently.
+Fox is a powerful assistant that brings AI directly to you. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Fox helps you write better, think clearer, and work more efficiently.
 
 ## 📺 Demo
 https://github.com/user-attachments/assets/2f83becf-be13-49b6-860a-c697e4f1d5b0
@@ -26,12 +26,12 @@ https://github.com/user-attachments/assets/2f83becf-be13-49b6-860a-c697e4f1d5b0
 - 🌍 **Global Hotkeys**: `F8` for chat, `Shift+F8` when selecting text for writing tools
 - **System Tray**: Always accessible from your system tray
 - 🚗 **Auto-start**: Launches with your system for instant availability
-- **Cross-platform**: Works on Windows and macOS
+- **Cross-platform**: Works on Windows and macOS (Technically works but looks a little off)
 - ☁️ **Auto update**: Updates on launch to get the latest features!
 
 ## 🌐 Browser Extension
 
-Fox also includes a companion **browser extension** that extends AI assistance to your **web browsing experience**. 
+Fox also includes a companion **browser extension** that extends it to your **web browsing experience**. 
 
 [Download here](https://github.com/ng-qi-an/Fox-Extension)
 
@@ -90,10 +90,6 @@ This will create platform-specific installers in the `dist` folder.
 1. Launch Fox and complete the initial setup wizard
 2. Enter your Google AI API key
 3. Configure your preferred AI models for chat and writing tools
-4. Customize hotkeys and preferences as needed
-
-
-
 
 ## 🔒 Privacy & Security
 
@@ -106,24 +102,17 @@ This will create platform-specific installers in the `dist` folder.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-
-
 ## 🛠️ Built With
 
 Fox is built using modern web technologies wrapped in a desktop application:
 
 - **Frontend**: [Next.js](https://nextjs.org/) with React 19 and TypeScript
 - **Desktop Framework**: [Electron](https://electronjs.org/) for cross-platform compatibility
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with custom components
-- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) with Google Gemini models
-- **State Management**: Electron Store for persistent configuration
-- **UI Components**: Shadcn UI primitives with custom styling
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with custom components and [Shadcn UI](https://ui.shadcn.com/)
+- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) with Google Gemini and OpenAI models
 
 
 ## 🙏 Acknowledgments
-
-- Built with the powerful [Vercel AI SDK](https://sdk.vercel.ai/)
-- UI components from [ShadcnUI](https://radix-ui.com/)
 - Icons from [Lucide](https://lucide.dev/)
 - Help from Github Copilot
     - Tidied much of the code up 🧹
