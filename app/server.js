@@ -12,10 +12,11 @@ export const httpServer = createServer(webApp);
 const io = new Server(httpServer, { cors: {origin: '*' } });
 
 var resolvePage = null
+var resolveAllTabs = null
 var resolveVideo = null
 
-export function getWebpageContent(){
-    io.emit("getPageContent", {})
+export function getWebpageContent(pages=[]){
+    io.emit("getPageContent", {pages})
     return new Promise((resolve, reject) => {
         console.log("[INFO](API) Requesting webpage content")
         resolvePage = resolve;
@@ -30,7 +31,15 @@ export function getVideoId(){
     });
 }
 
-export function startServer(app){
+export function getAllTabs(){
+    io.emit("getAllTabs", {})
+    return new Promise((resolve, reject) => {
+        console.log("[INFO](API) Requesting all tabs")
+        resolveAllTabs = resolve;
+    });
+}
+
+export function startServer(app, activePromptWindow){
     httpServer.on('error', function (e) {
         if (e.code == "EADDRINUSE") {
             console.error('[ERROR](API) Port 7323 is already in use');
@@ -42,7 +51,7 @@ export function startServer(app){
     });
   
     webApp.get('/', function(req, res) {
-        res.json({ message: 'Hello World'});     
+        res.json({ message: `Is ready?: ${global.getActivePromptWindow()}` });     
     });
 
     
@@ -62,6 +71,14 @@ export function startServer(app){
                 resolveVideo(data)
             } catch (error) {
                 console.error('[ERROR](API) Error in getting video ID:', error);
+            }
+        });
+        socket.on("getAllTabs", async (data) => {
+            console.log("[INFO](API) All tabs response received")
+            try {
+                resolveAllTabs(data)
+            } catch (error) {
+                console.error('[ERROR](API) Error in getting all tabs:', error);
             }
         });
     });

@@ -34,6 +34,9 @@ const store = new Store();
 var activePromptWindow = null;
 var activeWritingToolsWindow = null;
 
+// Global getter for prompt window
+global.getActivePromptWindow = () => activePromptWindow;
+
 
 app.on('second-instance', (event) => {
   if (activePromptWindow) {
@@ -41,6 +44,8 @@ app.on('second-instance', (event) => {
     activePromptWindow.focus();
   }
 })
+
+app.disableHardwareAcceleration()
 
 ipcMain.on('closeWindow', (event, type) => {
     const webContents = event.sender
@@ -88,7 +93,7 @@ function makeTray() {
         }},
         { label: 'Quit', type: 'normal', click: () => app.quit() },
     ])
-    tray.setToolTip('Fox')
+    tray.setToolTip('Waves')
     tray.on("click", () => {
         createPromptWindow()
     })
@@ -150,17 +155,19 @@ async function createPromptWindow(){
     const display = screen.getPrimaryDisplay().bounds
     const win = new BrowserWindow({
         titleBarStyle: "hidden",
-        backgroundColor: "#99000000",
+        // backgroundColor: "#99000000",
         icon: appIcon,
-        transparent: process.platform == "darwin" && true,
-        vibrancy: process.platform == "darwin" && "under-window", // in my case...
-        visualEffectState: process.platform == "darwin" && "followWindow",
-        backgroundMaterial: process.platform == "win32" && "acrylic",
+        // frame: false,
+        transparent: true,
+        // transparent: process.platform == "darwin" && true,
+        // vibrancy: process.platform == "darwin" && "under-window", // in my case...
+        // visualEffectState: process.platform == "darwin" && "followWindow",
+        // backgroundMaterial: process.platform == "win32" && "acrylic",
         resizable: true,
         width: 400,
-        height: 64,
+        height: 510, //200,
         x: process.platform == "win32" ? display.width - 410 : display.width - 405,
-        y: process.platform == "win32" ? display.height - 120 : 30,
+        y: process.platform == "win32" ? display.height - (510 + 48) : 30,
         webPreferences: {
             preload: path.join( __dirname, 'preload.js'),
         }
@@ -388,8 +395,8 @@ app.whenReady().then(async() => {
     initialiseWritingToolsIPC(app);
     initialiseWindowsIPC(app);
     initialiseChatIPC(app);
-    startServer(app);
-    console.log("Fox has started!")
+    startServer(app, activePromptWindow);
+    console.log("Waves has started!")
 })
 
 app.on('window-all-closed', () => {

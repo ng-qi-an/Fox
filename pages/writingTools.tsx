@@ -26,7 +26,7 @@ export default function WritingTools() {
         setGenerating(true);
         const newPrompt = prompts[prompt].replace("{{text}}", selectedContent)
             .replace("{{custom}}", prompt === "custom" ? customContent! : "");
-        console.log("[FOX WRITINGTOOLS] Sending prompt...", newPrompt)
+        console.log("[WRITINGTOOLS] Sending prompt...", newPrompt)
         // socket.emit("getWritingTools", {prompt: newPrompt})
         window.electronAPI.send("getWritingTools", {prompt: newPrompt})
     }

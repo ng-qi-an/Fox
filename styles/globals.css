@@ -45,7 +45,7 @@
 :root {
     --foreground-rgba: 34, 34, 34;
     --radius: 0.625rem;
-    --background: oklch(1 0 0);
+    --background: oklch(100% 0.00011 271.152);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -78,14 +78,16 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgba: 237, 237, 237
   }
-}
+} */
 
 body {
-  background: transparent;
+  background-color: transparent;
+  /* background: var(--background);
+  backdrop-filter: blur(5px); */
 }
 
 .main {
@@ -93,9 +95,6 @@ body {
     flex-direction: column;
     overflow: auto;
     height: 100vh;
-    /* background-color: rgba(var(--background), 0.5); */
-    /* backdrop-filter: blur(5px); */
-    border-radius: 8px;
 }
 
 .draggable {
@@ -111,6 +110,11 @@ body {
 .no-drag {
     app-region: no-drag;
     -webkit-app-region: no-drag;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
 }
 
 ::-webkit-scrollbar {
@@ -202,9 +206,18 @@ body {
 
 /* Minichat Styles */
 
-.message-content {
+.message-content * {
   color: rgba(var(--foreground-rgba), 0.85);
-  list-style-position: inside;
+}
+
+.message-content a {
+  color: rgba(var(--foreground-rgba), 0.7);
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.message-content a:hover {
+  color: rgba(var(--foreground-rgba), 1);
 }
 
 .message-content b, .message-content strong {
@@ -218,16 +231,17 @@ body {
 .message-content ol, .message-content ul {
     list-style: initial;
     list-style-position: inside;
+}*/
+
+
+.message-content li p {
+    margin: 0;
 }
 
-.message-content li {
-    display: list-item;
-    margin-bottom: 5px;
-} */
-
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.20 0.00 0);
   --foreground: oklch(0.985 0 0);
+  --foreground-rgba: 237, 237, 237;
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);

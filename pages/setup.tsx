@@ -166,8 +166,8 @@ export default function Setup() {
       <div id="stepContent" className="mb-4 h-full overflow-auto w-full max-w-2xl px-2 pt-4">
         {currentStep === 0 && (
           <div className="text-center flex flex-col h-full items-center justify-center">
-            <img src={'/icon.png'} className="w-24 h-24 mx-auto mb-4"/>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Welcome to Fox</h1>
+            <img src={'/icon.png'} className="w-24 h-24 mx-auto mb-4 rounded-md"/>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Welcome to Waves</h1>
             <p className="text-base text-foreground/80 max-w-sm mx-auto mb-6">
               Your intelligent AI assistant for writing and chat. Let's get you set up quickly.
             </p>

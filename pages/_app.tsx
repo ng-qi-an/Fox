@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/components/themeProvider";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 
@@ -14,5 +15,13 @@ declare global {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} /> 
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+    >
+      <Component {...pageProps} />
+    </ThemeProvider>
+  );
 }

@@ -1,8 +1,8 @@
-# 🦊 Fox
+# 🦊 Waves
 
 **An AI-powered personal assistant for your desktop**
 
-Fox is a powerful desktop application that brings AI assistance directly to your workflow. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Fox helps you write better, think clearer, and work more efficiently.
+Waves is a powerful desktop application that brings AI assistance directly to your workflow. With system-wide writing tools, intelligent chat capabilities, and seamless integration with your daily tasks, Waves helps you write better, think clearer, and work more efficiently.
 
 ## ✨ Features
 
@@ -28,14 +28,14 @@ Fox is a powerful desktop application that brings AI assistance directly to your
 
 ## 🌐 Browser Extension
 
-Fox also includes a companion **browser extension** that extends AI assistance to your **web browsing experience**. 
+Waves also includes a companion **browser extension** that extends AI assistance to your **web browsing experience**. 
 
-[Download here](https://github.com/ng-qi-an/Fox-Extension)
+[Download here](https://github.com/ng-qi-an/Waves-Extension)
 
 The browser extension provides:
 - Web content **summarization**
 - Research tools integration
-- Seamless connection to your Fox desktop app
+- Seamless connection to your Waves desktop app
 
 **⚠️ Must be installed for browser and youtube transcript to work!**
 
@@ -43,7 +43,7 @@ The browser extension provides:
 ## 🚀 Getting started
 
 ### Prebuilt Installers
-1. Download the latest setup file from [Github Releases](https://github.com/ng-qi-an/Fox/releases)
+1. Download the latest setup file from [Github Releases](https://github.com/ng-qi-an/Waves/releases)
 2. Run the setup
 
 ### Build it yourself
@@ -55,8 +55,8 @@ The browser extension provides:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ng-qi-an/Fox.git
-   cd Fox
+   git clone https://github.com/ng-qi-an/Waves.git
+   cd Waves
    ```
 
 2. **Install dependencies**
@@ -84,7 +84,7 @@ This will create platform-specific installers in the `dist` folder.
 
 ## 🧑‍💻 First Time Setup
 
-1. Launch Fox and complete the initial setup wizard
+1. Launch Waves and complete the initial setup wizard
 2. Enter your Google AI API key
 3. Configure your preferred AI models for chat and writing tools
 4. Customize hotkeys and preferences as needed
@@ -107,7 +107,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🛠️ Built With
 
-Fox is built using modern web technologies wrapped in a desktop application:
+Waves is built using modern web technologies wrapped in a desktop application:
 
 - **Frontend**: [Next.js](https://nextjs.org/) with React 19 and TypeScript
 - **Desktop Framework**: [Electron](https://electronjs.org/) for cross-platform compatibility
