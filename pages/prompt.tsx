@@ -1,18 +1,22 @@
 import Editor from "@/components/Editor";
 import Message from "@/components/Message";
 import { type Context } from "@/components/ContextSuggestions";
-import { AtSign, FileText, ImageIcon, LaptopMinimal, Minus, Paperclip, PaperclipIcon, Plus, Search, X } from "lucide-react";
+import { AtSign, FileText, ImageIcon, LaptopMinimal, Minus, Paperclip, PaperclipIcon, Phone, Plus, Search, Smartphone, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import QRCode from "react-qr-code";
 export default function Prompt(){
     const [messages, setMessages] = useState<Record<string, any>[]>([]);
     const [completed, setCompleted] = useState(true);
     const [promptInput, setPromptInput] = useState("");
     const [platform, setPlatform] = useState("");
+    const [ip, setIp] = useState("");
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [selectedTools, setSelectedTools] = useState<string[]>([]);
     const [openToolsDrawer, setOpenToolsDrawer] = useState(false);
+    const [openConnectPhoneDialog, setOpenConnectPhoneDialog] = useState(false);
     const [sources, setSources] = useState<Record<string, Record<string, string>[]>>({});
     const [selectedContexts, setSelectedContexts] = useState<Context[]>([]);
     const [multipleLines, setMultipleLines] = useState(false);
@@ -27,8 +31,13 @@ export default function Prompt(){
             console.log("[PROMPT] Platform detected:", platform);
             setPlatform(platform);
         });
+        window.electronAPI.on("getIp", (event, data) => {
+            console.log("[PROMPT] IP address received:", data.ip);
+            setIp(data.ip);
+        });
         return ()=>{
             window.electronAPI.removeAllListeners("getPlatform");
+            window.electronAPI.removeAllListeners("getIp");
         }
     }, [])
 
@@ -76,6 +85,31 @@ export default function Prompt(){
             window.electronAPI.removeAllListeners("getChatResponse");
         }
     }, [messages, openToolsDrawer, sources])
+
+    useEffect(()=>{
+        window.electronAPI.on("uploadFiles", (event, data)=>{
+            // Convert the arrayed ArrayByffer into an actual Array Buffer
+            setOpenConnectPhoneDialog(false)
+            const files = data.map((data:any) => {                
+                const file = new File([new Uint8Array(data.arrayBuffer).buffer], data.name, {
+                    type: data.type,
+                });
+                return file;
+            }).filter((file: File) => {
+                return !selectedFiles.some(existingFile => 
+                    existingFile.name === file.name && 
+                    existingFile.size === file.size && 
+                    existingFile.type === file.type
+                );
+            });
+            
+            console.log('Received files:', files);
+            setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+        })
+        return ()=>{
+            window.electronAPI.removeAllListeners("uploadFiles");
+        }
+    }, [selectedFiles])
 
     const sendChatMessage = useCallback(async(content: string) => {
         console.log(platform)
@@ -184,7 +218,7 @@ export default function Prompt(){
 
     return <div className="flex flex-col h-screen overflow-hidden">
         <div className="flex-1"/>
-        <motion.div initial={{y: 64, scale: 1, opacity: 0}} animate={{y: -7, scale: 1, opacity: 1}}  transition={{type: "spring", bounce: 0.17, visualDuration: 0.15}} className={`${messages.length > 0 ? "bg-background border rounded-lg" : "fixed"} flex flex-col draggable max-h-screen overflow-hidden w-full bottom-0`} style={{minHeight: selectedFiles.length > 0 ? "112px" : "66px", height: messages.length > 0 ? "calc(100vh - 7px)" : "max-content"}}>
+        <motion.div initial={{y: 64, scale: 0.95, opacity: 1}} animate={{y: -7, scale: 1, opacity: 1}}  transition={{type: "spring", bounce: 0.17, visualDuration: 0.15}} className={`${messages.length > 0 ? "bg-background border rounded-lg" : "fixed"} flex flex-col draggable max-h-screen overflow-hidden w-full bottom-0`} style={{minHeight: selectedFiles.length > 0 ? "112px" : "66px", height: messages.length > 0 ? "calc(100vh - 7px)" : "max-content"}}>
             {messages.length > 0 && 
             <>
                 <div className="flex items-center w-full min-h-[35px] px-4 border-b border-foreground/10 gap-3">
@@ -205,7 +239,7 @@ export default function Prompt(){
             </>
             }
             <div className="flex-1"/>
-            <form id="promptForm" className={`h-max no-drag flex flex-col bottom-0 left-0 w-full ${messages.length > 0 ? 'border-t border-foreground/10' : ''}`} onSubmit={async (e)=>{
+            <form id="promptForm" className={`h-max no-drag flex flex-col bottom-0 left-0 w-full ${openConnectPhoneDialog ? "opacity-0" : "opacity-100"} transition-all ${messages.length > 0 ? 'border-t border-foreground/10' : ''}`} onSubmit={async (e)=>{
                     // e.preventDefault();
                     // await sendChatMessage();
                 }}>
@@ -279,7 +313,6 @@ export default function Prompt(){
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-[150px]" onCloseAutoFocus={(e)=> e.preventDefault()}>
-                                
                                 <DropdownMenuCheckboxItem
                                     checked={selectedTools.includes("search")}
                                     onCheckedChange={(checked)=> checked ? setSelectedTools(["search"]) : setSelectedTools([])}
@@ -300,12 +333,15 @@ export default function Prompt(){
                                     editorRef.current?.commands.insertContent("@");
                                 }}><AtSign/>Add context</DropdownMenuItem>
                                 <DropdownMenuItem onClick={()=>{
-                                    setOpenToolsDrawer(false);
                                     window.electronAPI.send("noBlur", true)
                                     setTimeout(() => {
                                         fileInputRef.current?.click()
                                     }, 100)
                                 }}><Paperclip/>Add file</DropdownMenuItem>
+                                <DropdownMenuItem onClick={()=>{
+                                    window.electronAPI.send("getIp")
+                                    setOpenConnectPhoneDialog(true);
+                                }}><Smartphone/>Link phone</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         {promptInput == "" && !openToolsDrawer && <p className="opacity-50 absolute left-13">{selectedTools.includes('search') ? "Ask the web for anything" : selectedTools.includes('screen') ? "Ask anything about your screen" : "Ask anything • Use @ for context"}</p>}
@@ -329,6 +365,26 @@ export default function Prompt(){
                     />}
                 </div>
             </form>  
+            <Dialog open={openConnectPhoneDialog} onOpenChange={setOpenConnectPhoneDialog}>
+                <DialogContent className="max-w-[calc(100% - 20px)] bottom-[20px] top-[1] h-max translate-y-0"  showBackdrop={messages.length > 0}>
+                    <DialogHeader>
+                    <DialogTitle>Wave Connect</DialogTitle>
+                    <DialogDescription>
+                        Scan the QR code with your phone's camera. Your phone must be on the same Wi-Fi network.
+                    </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-center w-full">
+                    <QRCode
+                        size={100}
+                        style={{ height: "auto", maxWidth: "150px", width: "100%" }}
+                        bgColor="var(--background)"
+                        fgColor="var(--foreground)"
+                        value={`http://10.72.1.50:3010/connect?ip=${ip}`}
+                        viewBox={`0 0 100 100`}
+                    />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     </div>
 }

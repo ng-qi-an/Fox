@@ -5,7 +5,7 @@ import { webTools } from './webTools.js';
 import Store from 'electron-store';
 import { createOpenAI, openai } from '@ai-sdk/openai';
 import { getAllTabs, getWebpageContent } from '../server.js';
-import { z } from 'zod';
+import { getLocalIP } from "../utils/ip.js";
 
 export async function chat(app, prompt, messages, tools, contexts) {
     const store = new Store()
@@ -139,6 +139,10 @@ export function initialiseChatIPC(app) {
             return event.reply("getAllTabs", {"status": "ERROR", "error": error.message});
         }
     });
+
+    ipcMain.on("getIp", async(event)=>{
+        event.reply("getIp", {ip: getLocalIP()})
+    })
 
     ipcMain.on("getChatResponse", async(event, data)=>{
         const webContents = event.sender

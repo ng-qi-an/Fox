@@ -3,9 +3,19 @@ import { createServer } from "http";
 import express from 'express';
 import { exit } from 'process';
 import cors from 'cors';
+import multer from 'multer';
+
 
 const webApp = express()
 webApp.use(cors({ origin: "*" }))
+
+// Configure multer for file uploads
+const upload = multer({ 
+    storage: multer.memoryStorage(), // Store files in memory
+    limits: {
+        files: 10 // Max 10 files
+    }
+});
 
 export const httpServer = createServer(webApp);
 
@@ -39,7 +49,7 @@ export function getAllTabs(){
     });
 }
 
-export function startServer(app, activePromptWindow){
+export function startServer(app){
     httpServer.on('error', function (e) {
         if (e.code == "EADDRINUSE") {
             console.error('[ERROR](API) Port 7323 is already in use');
@@ -51,10 +61,44 @@ export function startServer(app, activePromptWindow){
     });
   
     webApp.get('/', function(req, res) {
-        res.json({ message: `Is ready?: ${global.getActivePromptWindow()}` });     
+        res.json({ "status": "OK", message: `Is ready?: ${global.getActivePromptWindow()}` });
     });
 
-    
+    webApp.get("/connect", function(req, res) {
+        if (global.getActivePromptWindow()) {
+            res.json({ "status": "OK", message: `Connected to prompt window!` });
+        } else {
+            res.json({ "status": "ERROR", error: "NO_ACTIVE"});
+        }
+    });
+
+    webApp.post("/uploadToPrompt", upload.array('files'), function(req, res) {
+        if (global.getActivePromptWindow()) {
+            // Handle file upload - files are now available in req.files
+            console.log('Uploaded files:', req.files);
+            console.log('Number of files:', req.files ? req.files.length : 0);
+            
+            if (!req.files || req.files.length === 0) {
+                return res.json({ "status": "ERROR", error: "No files uploaded" });
+            }
+            
+            // Process the files and send as ArrayBuffer-compatible data
+            const fileData = req.files.map(file => ({
+                name: file.originalname,
+                type: file.mimetype,
+                size: file.size,
+                lastModified: Date.now(),
+                // Send buffer as Uint8Array which can be easily converted to ArrayBuffer
+                arrayBuffer: Array.from(file.buffer)
+            }));
+            
+            global.getActivePromptWindow().webContents.send("uploadFiles", fileData);
+            res.json({ "status": "OK", message: `${req.files.length} file(s) uploaded to prompt window!` });
+        } else {
+            res.json({ "status": "ERROR", error: "NO_ACTIVE"});
+        }
+    });
+
     io.on("connection", (socket) => {
         console.log("[INFO](API) Client Connected")
         socket.on("getPageContent", async (data) => {
